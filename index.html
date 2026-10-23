@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programación II · Guía de estudio: eficiencia, gramáticas, autómatas y Turing</title>
+<meta name="description" content="Guía de estudio de Programación II (FCEyN - UNLPam): eficiencia de algoritmos, gramáticas BNF/EBNF, autómatas finitos y máquinas de Turing. Teoría, ejemplos resueltos, ejercicios y autoevaluación.">
+<meta name="author" content="Guía de estudio — Programación II">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Programación II · Profesorado Universitario en Computación</p>
+    <h1>Guía de estudio<span class="dot">·</span><em> eficiencia, gramáticas, autómatas y Turing</em></h1>
+    <p class="lead">Todo el teórico y el práctico de las cuatro unidades, en un solo lugar: definiciones formales,
+      ejemplos resueltos paso a paso, ejercicios con solución y autoevaluación. Basado en los TP1 a TP4 y en el
+      material teórico de la cátedra (FCEyN, Universidad Nacional de La Pampa).</p>
+    <ul class="chips">
+      <li><a href="#eficiencia">Eficiencia de algoritmos</a></li>
+      <li><a href="#gramaticas">Gramáticas</a></li>
+      <li><a href="#turing">Máquinas de Turing</a></li>
+      <li><a href="#automatas">Autómatas finitos</a></li>
+    </ul>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Unidades">
+  <button class="tab is-active" role="tab" id="tab-eficiencia" aria-controls="panel-eficiencia" aria-selected="true" data-target="eficiencia">
+    <span class="tab-num">01</span><span class="tab-label">Eficiencia de algoritmos</span>
+  </button>
+  <button class="tab" role="tab" id="tab-gramaticas" aria-controls="panel-gramaticas" aria-selected="false" data-target="gramaticas">
+    <span class="tab-num">02</span><span class="tab-label">Gramáticas</span>
+  </button>
+  <button class="tab" role="tab" id="tab-turing" aria-controls="panel-turing" aria-selected="false" data-target="turing">
+    <span class="tab-num">03</span><span class="tab-label">Máquinas de Turing</span>
+  </button>
+  <button class="tab" role="tab" id="tab-automatas" aria-controls="panel-automatas" aria-selected="false" data-target="automatas">
+    <span class="tab-num">04</span><span class="tab-label">Autómatas finitos</span>
+  </button>
+</nav>
+
+<main>
+
+  <!-- ==================================================================== -->
+  <!-- 01 · EFICIENCIA DE ALGORITMOS                                        -->
+  <!-- ==================================================================== -->
+  <section class="panel is-active" id="panel-eficiencia" role="tabpanel" aria-labelledby="tab-eficiencia" tabindex="0">
+
+    <div class="panel-head">
+      <h2>Eficiencia de algoritmos</h2>
+      <p class="panel-lead">Cómo medir el costo de un algoritmo <strong>sin ejecutarlo</strong>: contar pasos,
+        quedarse con el término dominante y expresar el resultado con O grande, Ω y Θ.</p>
+    </div>
+
+    <section class="block">
+      <h3>1. ¿Qué hace bueno a un algoritmo?</h3>
+      <p>No es fácil responderlo. Muchos criterios son subjetivos: simplicidad, claridad, adecuación a los datos
+        manejados. Una meta <em>más objetiva</em> —aunque no por eso más importante— es medir la
+        <strong>complejidad</strong> del algoritmo.</p>
+      <p>Una interpretación intuitiva asocia complejidad con el grado de ramificación y de toma de decisiones.
+        Pero esa idea no captura el concepto <em>desde el punto de vista de la máquina</em>. La interpretación que
+        mejor lo refleja se basa en el <strong>número de pasos</strong> necesarios para llevar la solución a la
+        práctica, que no es lo mismo que la cantidad de instrucciones escritas en el programa.</p>
+
+      <div class="callout">
+        <p class="callout-title">El ejemplo del ciclo</p>
+        <p>Un ciclo cuyo cuerpo es un solo <code>printf</code> pero cuyo control lo ejecuta 100 veces equivale a
+          100 impresiones al ejecutarse. Es <em>más complejo</em> que una lista de 50 impresiones, aunque escrito
+          ocupe mucho menos. La complejidad no se mide en líneas de código.</p>
+      </div>
+
+      <p>Por eso la idea de complejidad queda, en última instancia, asociada al <strong>tiempo que tarda una
+        máquina en ejecutar el algoritmo</strong>. De los recursos del sistema, los más relevantes son:</p>
+      <div class="grid two">
+        <div class="mini-card"><h4>Tiempo</h4><p>Tiempo de ejecución en máquina requerido.</p></div>
+        <div class="mini-card"><h4>Espacio</h4><p>Cantidad de memoria utilizada.</p></div>
+      </div>
+      <p>La eficiencia de un sistema de software está determinada por dos factores: los <strong>algoritmos</strong> y
+        las <strong>estructuras de datos</strong>. En esta materia no se mide el espacio: se estima el
+        <strong>tiempo de ejecución</strong>, es decir, el tiempo que le toma a la CPU ejecutar una implementación
+        del algoritmo.</p>
+    </section>
+
+    <section class="block">
+      <h3>2. Tiempo de reloj no es tiempo de ejecución</h3>
+      <p>El compilador traduce una instrucción de C/C++ a un conjunto de instrucciones de máquina (del orden de
+        diez por cada instrucción de alto nivel). Cada computadora tiene una velocidad —medida a menudo en
+        <abbr title="millones de instrucciones por segundo">MIPS</abbr>— y el tiempo de reloj depende de qué
+        máquina se use, de qué compilador, e incluso de la hora del día.</p>
+      <p>Por eso el tiempo de reloj no es una buena medida de eficiencia. En cambio, contar el
+        <strong>número de instrucciones de máquina</strong> (o de pasos de pseudocódigo) es independiente de la
+        máquina: la eficiencia de un algoritmo no se ve afectada por la velocidad del equipo donde corre.</p>
+      <p>Ese número de pasos depende del <strong>tamaño de la entrada <code>n</code></strong>: buscar un elemento
+        en un arreglo requiere menos pasos si el arreglo es más chico. Se define entonces
+        <code>T(n)</code> como el tiempo de ejecución de un algoritmo con una entrada de tamaño <code>n</code>.
+        <code>T(n)</code> no tiene unidades: es el número de instrucciones ejecutadas por un computador
+        idealizado.</p>
+    </section>
+
+    <section class="block">
+      <h3>3. Notación O grande (asintótica)</h3>
+      <p>Aun contando pasos con precisión aparecen expresiones incómodas. Si la complejidad media de la inserción
+        directa es <code>(n² − n)/4</code>, para valores grandes de <code>n</code> la diferencia con
+        <code>n²/4</code> es insignificante; y el mismo algoritmo puede medirse como <code>n²/4</code> en una
+        máquina y como <code>n²</code> en otra. Por eso no se distinguen esas expresiones: se aísla el
+        <strong>término dominante</strong> y se dice que el algoritmo requiere un tiempo <em>proporcional a
+        n²</em>, o que su complejidad es <em>del orden de n²</em>.</p>
+
+      <div class="formula">
+        <p class="formula-main">T(n) ∈ O(f(n)) &nbsp;⇔&nbsp; ∃ c &gt; 0, ∃ n<sub>0</sub> : &nbsp; T(n) ≤ c · f(n) &nbsp; ∀ n ≥ n<sub>0</sub></p>
+        <p class="formula-note">Se lee «orden f de n». <code>f(n)</code> es una <strong>cota superior</strong>:
+          <code>T(n)</code> no crece más rápido que <code>f(n)</code>.</p>
+      </div>
+
+      <p>El orden O de una función es una medida <em>relativa</em> de cuán rápido crece respecto de <code>n</code>:
+        describe el comportamiento límite cuando <code>n</code> tiende a infinito. Así, dos algoritmos con
+        complejidades <code>(n² − 5n + 2)/2</code> y <code>2(n² + 2n − 3)/3</code> tienen esencialmente la misma
+        complejidad —<code>O(n²)</code>— y ambos son más eficientes que uno de clase <code>O(n³)</code>.</p>
+
+      <h4>Ejemplo 1 — <code>T(n) = (n + 1)²</code> es <code>O(n²)</code></h4>
+      <p>Existen <code>n₀ = 1</code> y <code>c = 4</code> tales que <code>T(n) ≤ c · f(n)</code>:</p>
+      <div class="math">(n + 1)² ≤ 4 · n² &nbsp;&nbsp;∀ n ≥ 1</div>
+
+      <h4>Ejemplo 2 — <code>T(n) = 3n³ + 2n²</code> es <code>O(n³)</code></h4>
+      <p>Con <code>n₀ = 0</code> y <code>c = 5</code>:</p>
+      <div class="math">3n³ + 2n² ≤ 5 · n³ &nbsp;&nbsp;∀ n ≥ 0</div>
+      <p>También podría decirse que <code>T(n)</code> es <code>O(n⁴)</code>, pero es una afirmación
+        <em>más débil</em>: la cota sirve, pero informa menos.</p>
+
+      <h4>Ejemplo 3 — <code>3ⁿ</code> <span class="no">no</span> es <code>O(2ⁿ)</code></h4>
+      <p>Demostración por reducción al absurdo. Supongamos que sí lo es: existen <code>c</code> y
+        <code>n₀</code> tales que</p>
+      <div class="math">3ⁿ ≤ c · 2ⁿ &nbsp;⇒&nbsp; (3/2)ⁿ ≤ c &nbsp;&nbsp;para n ≥ n₀</div>
+      <p>Pero <code>(3/2)ⁿ</code> es arbitrariamente grande cuando <code>n</code> crece, así que ninguna constante
+        <code>c</code> puede acotarla. Contradicción.</p>
+    </section>
+
+    <section class="block">
+      <h3>4. Las tres cotas: O, Ω y Θ</h3>
+      <p>O grande acota <em>por arriba</em>. La notación asintótica completa agrega la cota inferior
+        (<strong>Ω</strong>, omega) y la cota ajustada (<strong>Θ</strong>, theta), que es la que vale a la vez por
+        arriba y por abajo. Esta es la clasificación por orden de complejidad que usa la cátedra:</p>
+
+      <div class="table-wrap">
+        <table class="data">
+          <caption>Órdenes de complejidad y sus tres cotas</caption>
+          <thead>
+            <tr><th scope="col">Expresión</th><th scope="col">Orden</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>O(1), Ω(1), Θ(1)</code></td><td>orden constante</td></tr>
+            <tr><td><code>O(log₂ n), Ω(log₂ n), Θ(log₂ n)</code></td><td>orden logarítmico</td></tr>
+            <tr><td><code>O(n), Ω(n), Θ(n)</code></td><td>orden lineal</td></tr>
+            <tr><td><code>O(n log₂ n), Ω(n log₂ n), Θ(n log₂ n)</code></td><td>orden logarítmico y lineal</td></tr>
+            <tr><td><code>O(n²), Ω(n²), Θ(n²)</code></td><td>orden cuadrático</td></tr>
+            <tr><td><code>O(nᵃ), Ω(nᵃ), Θ(nᵃ)</code></td><td>orden polinomial (a &gt; 2)</td></tr>
+            <tr><td><code>O(aⁿ), Ω(aⁿ), Θ(aⁿ)</code></td><td>orden exponencial (a &gt; 2)</td></tr>
+            <tr><td><code>O(n!), Ω(n!), Θ(n!)</code></td><td>orden factorial</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data compact">
+          <caption>Cómo crece cada orden (valores aproximados)</caption>
+          <thead>
+            <tr><th scope="col">Orden</th><th scope="col">n = 10</th><th scope="col">n = 100</th><th scope="col">n = 1 000</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>O(1)</td><td>1</td><td>1</td><td>1</td></tr>
+            <tr><td>O(log₂ n)</td><td>3,3</td><td>6,6</td><td>10</td></tr>
+            <tr><td>O(n)</td><td>10</td><td>100</td><td>1 000</td></tr>
+            <tr><td>O(n log₂ n)</td><td>33</td><td>664</td><td>9 966</td></tr>
+            <tr><td>O(n²)</td><td>100</td><td>10 000</td><td>10⁶</td></tr>
+            <tr><td>O(n³)</td><td>1 000</td><td>10⁶</td><td>10⁹</td></tr>
+            <tr><td>O(2ⁿ)</td><td>1 024</td><td>≈1,27 · 10³⁰</td><td>≈1,07 · 10³⁰¹</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>5. Por qué las constantes igual importan</h3>
+      <p>Según la teoría, un programa <code>O(n²)</code> es mejor que uno <code>O(n³)</code>. Sin embargo, para
+        valores especiales de <code>c</code> y <code>n₀</code> puede pasar lo contrario en la práctica. Con</p>
+      <div class="math">T₁(n) = 100 n² &nbsp;&nbsp;&nbsp; T₂(n) = 5 n³</div>
+      <p>para <code>n &lt; 20</code> el algoritmo <code>T₂</code> es más eficiente. Si el programa se va a ejecutar
+        con entradas pequeñas conviene el <code>O(n³)</code>; si las entradas superan 20, conviene el
+        <code>O(n²)</code>. La notación asintótica describe el largo plazo, no el caso chico.</p>
+    </section>
+
+    <section class="block">
+      <h3>6. Reglas para calcular T(n)</h3>
+      <p>Calcular <code>T(n)</code> para un programa arbitrario puede ser matemáticamente complejo, pero en la
+        práctica alcanza con aplicar reglas:</p>
+      <ol class="rules">
+        <li>Los <strong>lazos anidados se multiplican</strong> entre sí.</li>
+        <li>Los <strong>lazos secuenciales se suman</strong>.</li>
+        <li>Sólo prevalece el <strong>término más significativo</strong>; el resto se descarta.</li>
+        <li>Las <strong>constantes se descartan</strong>.</li>
+        <li>Las condiciones de un lazo o de un condicional son constantes; también lo son las operaciones de
+          lectura y escritura.</li>
+      </ol>
+      <div class="callout accent">
+        <p class="callout-title">Regla de la suma</p>
+        <p>Si un fragmento está formado por dos bloques <code>P₁</code> y <code>P₂</code>, con tiempos
+          <code>T₁(n) ∈ O(f(n))</code> y <code>T₂(n) ∈ O(g(n))</code>, el tiempo total de <code>P₁</code> seguido
+          de <code>P₂</code> es<br>
+          <code>T₁(n) + T₂(n) = O( máx( f(n), g(n) ) )</code>.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>7. Del código a la complejidad</h3>
+
+      <div class="example">
+        <p class="example-title">Lazo simple → O(n)</p>
+<pre><code>int suma = 0;                    // O(1)
+for (int i = 0; i &lt; n; i++)      // el lazo se repite n veces
+    suma += a[i];                // O(1) dentro del lazo
+// T(n) = 1 + n * 1 = O(n)</code></pre>
+      </div>
+
+      <div class="example">
+        <p class="example-title">Lazos anidados → O(n²)</p>
+<pre><code>for (int i = 0; i &lt; n; i++)          // n iteraciones
+    for (int j = 0; j &lt; n; j++)      // n iteraciones por cada i
+        m[i][j] = 0;                 // O(1)
+// T(n) = n * n = O(n²)</code></pre>
+      </div>
+
+      <div class="example">
+        <p class="example-title">Lazos secuenciales → se suman y gana el mayor</p>
+<pre><code>for (int i = 0; i &lt; n; i++)          // O(n)
+    a[i] = 0;
+for (int i = 0; i &lt; n; i++)          // O(n)
+    for (int j = 0; j &lt; n; j++)      // anidado con el anterior
+        b[i][j] = 0;
+// T(n) = O(n) + O(n²) = O(n²)</code></pre>
+      </div>
+
+      <div class="example">
+        <p class="example-title">Un lazo que divide → O(log n)</p>
+<pre><code>int i = n;
+while (i &gt; 1) {
+    i = i / 2;        // la variable se reduce a la mitad
+}
+// se ejecuta log2(n) veces: O(log n)</code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data">
+          <caption>Complejidades típicas para reconocer de un vistazo</caption>
+          <thead>
+            <tr><th scope="col">Algoritmo</th><th scope="col">T(n)</th><th scope="col">Por qué</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Acceso a <code>a[i]</code></td><td><code>O(1)</code></td><td>una sola operación, sin depender de n</td></tr>
+            <tr><td>Búsqueda secuencial</td><td><code>O(n)</code></td><td>en el peor caso recorre todo el arreglo</td></tr>
+            <tr><td>Búsqueda binaria</td><td><code>O(log₂ n)</code></td><td>parte el espacio de datos a la mitad en cada paso</td></tr>
+            <tr><td>Burbuja / inserción directa</td><td><code>O(n²)</code></td><td>dos lazos anidados; los datos se tratan de a pares</td></tr>
+            <tr><td>Merge sort</td><td><code>O(n log₂ n)</code></td><td>divide en subespacios y luego combina los resultados</td></tr>
+            <tr><td>Producto de matrices (clásico)</td><td><code>O(n³)</code></td><td>tres lazos anidados</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>8. Clasificación según el grado de complejidad</h3>
+      <dl class="definition-list">
+        <dt>Constante</dt>
+        <dd>Cada instrucción se ejecuta una vez o un número fijo de veces, independientemente de los datos. Se da
+          en subprogramas específicos, no en sistemas completos (los sistemas no son triviales).</dd>
+        <dt>Logarítmico (log₂ N)</dt>
+        <dd>El tiempo crece en forma logarítmica con la cantidad de datos. Es el caso de los algoritmos que
+          <em>dividen</em> el espacio de datos en subespacios menores, reduciendo el tamaño del problema: la
+          búsqueda binaria o dicotómica.</dd>
+        <dt>Lineal (N)</dt>
+        <dd>Hay un pequeño número de acciones de procesamiento (lectura, impresión) y el tiempo crece linealmente
+          con N.</dd>
+        <dt>N log₂ N</dt>
+        <dd>Se divide el espacio de datos en subespacios y luego hay que <em>combinar</em> resultados parciales:
+          Merge Sort, o el procesamiento de una imagen por sectores que después se unen.</dd>
+        <dt>Cuadrático (N²)</dt>
+        <dd>Los datos se tratan de a pares en un doble lazo. Puede ser una limitante para implementaciones reales
+          con grandes volúmenes de datos.</dd>
+        <dt>Cúbico / Exponencial (N³, 2^N)</dt>
+        <dd>Soluciones que consumen mucho tiempo y son difícilmente aplicables con muchos datos. En estos casos es
+          importante optimizar el algoritmo: transformarlo en uno lineal o lineal-logarítmico.</dd>
+      </dl>
+      <p class="note">La medida O-grande de una función depende de su variable independiente y es el orden del
+        término que crece más rápidamente.</p>
+    </section>
+
+    <section class="block">
+      <h3>9. Eficiencia en algoritmos recursivos</h3>
+      <p>En los procesos recursivos no se puede ordenar el trabajo para reutilizar evaluaciones ya hechas. Lo que
+        se hace es asociar a cada procedimiento recursivo una función de tiempo desconocida <code>T(n)</code>,
+        donde <code>n</code> mide el tamaño de los argumentos, y obtener una <strong>recurrencia</strong>:
+        una ecuación para <code>T(n)</code> en función de <code>T(k)</code>.</p>
+
+      <div class="example">
+        <p class="example-title">Ejemplo 4 — factorial recursivo</p>
+<pre><code>int factorial(int n) {
+    if (n &lt; 1)                          // {1}
+        return 1;                       // {2}
+    else
+        return n * factorial(n - 1);     // {3}
+}</code></pre>
+        <p>Para <code>{1}</code> y <code>{2}</code>, <code>T(n)</code> es <code>O(1)</code>; para la línea
+          <code>{3}</code> es <code>O(1) + T(n−1)</code>. Entonces, para constantes <code>c</code> y <code>d</code>:</p>
+        <div class="math">T(n) = c + T(n−1) &nbsp;⇒&nbsp; T(n) = 2c + T(n−2) &nbsp;⇒&nbsp; T(n) = 3c + T(n−3)</div>
+        <p>Por inducción sobre <code>i</code>: <code>T(n) = i·c + T(n−i)</code>. Con <code>i = n−1</code>:</p>
+        <div class="math">T(n) = (n−1)·c + T(1) = (n−1)·c + d</div>
+        <p>Como <code>(n−1)·c + d ≤ k·n</code> para algún <code>k</code> y todo <code>n ≥ n₀</code>,
+          <strong><code>T(n)</code> es <code>O(n)</code></strong>.</p>
+      </div>
+
+      <div class="callout warn">
+        <p class="callout-title">Ojo con la recurrencia</p>
+        <p>Una recursión que se llama <em>una sola vez</em> por nivel da lineal. Si se llama <em>dos veces</em> por
+          nivel sobre la mitad de los datos (como merge sort) aparece un <code>log</code>: el patrón
+          <code>T(n) = 2·T(n/2) + O(n)</code> resuelve <code>O(n log n)</code>.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Ejercicios</h3>
+
+      <div class="exercise">
+        <p class="exercise-title">1. Justificar con la definición</p>
+        <p>Demostrar que <code>T(n) = 4n² + 3n + 2</code> es <code>O(n²)</code>, indicando <code>c</code> y
+          <code>n₀</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>Basta elegir <code>c = 9</code> y <code>n₀ = 1</code>. Para todo <code>n ≥ 1</code> vale
+            <code>3n ≤ 3n²</code> y <code>2 ≤ 2n²</code>, entonces
+            <code>4n² + 3n + 2 ≤ 4n² + 3n² + 2n² = 9n²</code>. Por lo tanto
+            <code>T(n) ≤ 9·n²</code> para todo <code>n ≥ 1</code>, es decir <code>T(n) ∈ O(n²)</code>.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">2. ¿Es o no es?</p>
+        <p>Decidir, justificando: ¿<code>5n²</code> es <code>O(n)</code>?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>No. Si lo fuera, existirían <code>c</code> y <code>n₀</code> con <code>5n² ≤ c·n</code> para todo
+            <code>n ≥ n₀</code>. Dividiendo por <code>n</code> (positivo) queda <code>5n ≤ c</code>, imposible
+            porque el miembro izquierdo crece sin límite. Ninguna constante lo acota.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">3. Ordenar por crecimiento</p>
+        <p>Ordenar de menor a mayor: <code>n log n</code>, <code>2ⁿ</code>, <code>log n</code>, <code>n²</code>,
+          <code>1</code>, <code>n</code>, <code>n!</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p><code>1 &lt; log n &lt; n &lt; n log n &lt; n² &lt; 2ⁿ &lt; n!</code>. La comparación se hace para
+            <code>n</code> grande: por eso <code>log n</code> queda antes que <code>n</code> aunque para valores
+            chicos sean parecidos, y <code>n!</code> supera a <code>2ⁿ</code> porque multiplica <code>n</code>
+            factores, no dos.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">4. Calcular T(n) de un fragmento</p>
+<pre><code>for (int i = 0; i &lt; n; i++)          // (A)
+    for (int j = 0; j &lt; n; j++)      // (B)
+        c[i][j] = 0;
+for (int k = 0; k &lt; n; k++)          // (C)
+    printf("%d", v[k]);</code></pre>
+        <p>Dar <code>T(n)</code> y el orden.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>(A) y (B) están anidados: <code>n · n = n²</code>. (C) es secuencial y vale <code>O(n)</code>. Por la
+            regla de la suma, <code>T(n) = O(n²) + O(n) = O(n²)</code>: el término dominante se come al lineal.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">5. Recurrencia</p>
+        <p>Un procedimiento recursivo cumple <code>T(0) = 1</code> y <code>T(n) = T(n−1) + 3</code>. ¿Cuál es su
+          orden?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>Desarrollando: <code>T(n) = T(n−1) + 3 = T(n−2) + 6 = … = T(0) + 3n = 1 + 3n</code>. Es
+            <code>O(n)</code>: cada llamada agrega una cantidad constante de trabajo y hay <code>n</code>
+            llamadas.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">6. El contraejemplo de las constantes</p>
+        <p>Con <code>T₁(n) = 100n²</code> y <code>T₂(n) = 5n³</code>, ¿para qué valores de <code>n</code> conviene
+          cada uno?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>Se comparan: <code>100n² &lt; 5n³ ⇔ 20 &lt; n</code>. Para <code>n &lt; 20</code> conviene
+            <code>T₂</code> (el cúbico); para <code>n &gt; 20</code> conviene <code>T₁</code> (el cuadrático);
+            para <code>n = 20</code> empatan. Es el ejemplo del teórico: el orden manda recién cuando la entrada
+            es grande.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Autoevaluación</h3>
+      <div class="quiz">
+        <div class="q" data-answer="1">
+          <p class="q-text">1. La complejidad de un algoritmo se mide, en este curso, contando…</p>
+          <label><input type="radio" name="e1" value="0"> las líneas de código del programa</label>
+          <label><input type="radio" name="e1" value="1"> los pasos o instrucciones que se ejecutan en función de n</label>
+          <label><input type="radio" name="e1" value="2"> el tiempo de reloj en segundos</label>
+          <p class="why">El tiempo de reloj depende de la máquina, del compilador y hasta de la hora; contar pasos es
+            independiente de la máquina.</p>
+        </div>
+        <div class="q" data-answer="2">
+          <p class="q-text">2. Si <code>T(n) = 7n³ + 100n² + 5</code>, entonces…</p>
+          <label><input type="radio" name="e2" value="0"> es Θ(n²) porque 100 &gt; 7</label>
+          <label><input type="radio" name="e2" value="1"> es O(n⁴) y nada más se puede afirmar</label>
+          <label><input type="radio" name="e2" value="2"> es Θ(n³); O(n⁴) también sería cierto pero más débil</label>
+          <p class="why">Manda el término dominante: n³. Decir O(n⁴) es verdadero pero informa menos.</p>
+        </div>
+        <div class="q" data-answer="0">
+          <p class="q-text">3. Dos lazos <em>anidados</em>, cada uno de n iteraciones, dan…</p>
+          <label><input type="radio" name="e3" value="0"> O(n²), porque se multiplican</label>
+          <label><input type="radio" name="e3" value="1"> O(n), porque se suman</label>
+          <label><input type="radio" name="e3" value="2"> O(2n), porque hay dos lazos</label>
+          <p class="why">Anidados se multiplican; secuenciales se suman.</p>
+        </div>
+        <div class="q" data-answer="1">
+          <p class="q-text">4. <code>3ⁿ ∈ O(2ⁿ)</code> es…</p>
+          <label><input type="radio" name="e4" value="0"> verdadero, porque ambas son exponenciales</label>
+          <label><input type="radio" name="e4" value="1"> falso: (3/2)ⁿ no está acotado por ninguna constante</label>
+          <label><input type="radio" name="e4" value="2"> verdadero sólo para n &lt; n₀</label>
+          <p class="why">Es el Ejemplo 3 del teórico, resuelto por reducción al absurdo.</p>
+        </div>
+        <div class="q" data-answer="2">
+          <p class="q-text">5. La búsqueda binaria sobre un arreglo ordenado es…</p>
+          <label><input type="radio" name="e5" value="0"> O(n), porque recorre el arreglo</label>
+          <label><input type="radio" name="e5" value="1"> O(n log n), porque ordena antes</label>
+          <label><input type="radio" name="e5" value="2"> O(log n), porque parte el espacio a la mitad</label>
+          <p class="why">Cada comparación descarta la mitad de los candidatos: el número de pasos es logarítmico.</p>
+        </div>
+        <button class="btn btn-primary" data-check>Corregir</button>
+        <p class="score" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="block sources">
+      <h3>Fuentes de la unidad</h3>
+      <ul class="source-list">
+        <li><strong>COMPLEJIDAD COMPUTACIONAL</strong> — teórico de la cátedra (Dr. Oscar Testa – Esp. Leandro Castro).</li>
+        <li>Tabla de órdenes O, Ω y Θ de las láminas del teórico.</li>
+      </ul>
+      <details class="slides">
+        <summary>Láminas del teórico en Pitch</summary>
+        <div class="slides-list" data-deck="eficiencia"></div>
+      </details>
+    </section>
+  </section>
+
+  <!-- ==================================================================== -->
+  <!-- 02 · GRAMÁTICAS                                                      -->
+  <!-- ==================================================================== -->
+  <section class="panel" id="panel-gramaticas" role="tabpanel" aria-labelledby="tab-gramaticas" tabindex="0" hidden>
+
+    <div class="panel-head">
+      <h2>Gramáticas</h2>
+      <p class="panel-lead">El ente formal que especifica <em>de manera finita</em> un conjunto infinito de cadenas:
+        de la cuádrupla <code>G = (T, NT, S, P)</code> a las gramáticas BNF/EBNF y los árboles de análisis sintáctico.</p>
+    </div>
+
+    <section class="block">
+      <h3>1. Definiciones elementales</h3>
+      <p>Antes de definir un lenguaje formal hacen falta algunas definiciones previas:</p>
+      <dl class="definition-list">
+        <dt>Símbolo</dt>
+        <dd>Entidad abstracta que no se va a definir: se deja como axioma. Normalmente son letras
+          (<code>a, b, c, … z</code>), dígitos (<code>0, 1, … 9</code>) y otros caracteres
+          (<code>+ − ( * …</code>). Pueden estar formados por varias letras: las palabras reservadas de un lenguaje
+          de programación son símbolos de ese lenguaje. <span class="eg">Ej.: <code>a, b, c, #, 6, 7, for, if, while, main</code></span></dd>
+        <dt>Alfabeto</dt>
+        <dd>Conjunto <strong>finito y no vacío</strong> de símbolos, que se define por enumeración. Con la notación
+          <code>m ∈ A</code> se expresa que el símbolo <code>m</code> pertenece al alfabeto <code>A</code>.</dd>
+        <dt>Cadena</dt>
+        <dd>Secuencia finita de símbolos de un alfabeto; su longitud es el número de símbolos que contiene. Existe la
+          <strong>cadena vacía</strong>, de longitud 0, que se suele representar con <code>λ</code> (en otros textos,
+          <code>ε</code>).</dd>
+        <dt>Universo del discurso <code>W(A)</code></dt>
+        <dd>Conjunto de <em>todas</em> las cadenas que se pueden formar con los símbolos de <code>A</code>. Es un
+          conjunto infinito y <code>λ ∈ W(A)</code>.</dd>
+        <dt>Lenguaje <code>L(A)</code></dt>
+        <dd>Subconjunto del universo del discurso: un conjunto de palabras de un alfabeto determinado. Podría pensarse
+          en definirlo por enumeración, pero eso es ineficiente y a veces imposible: los lenguajes se definen por las
+          <strong>propiedades</strong> que cumplen sus cadenas.</dd>
+      </dl>
+
+      <h4>Los dos aspectos de un lenguaje</h4>
+      <div class="grid two">
+        <div class="mini-card">
+          <h5>Sintaxis</h5>
+          <p>El aspecto que presentan las cadenas. Dar las reglas de sintaxis es decir <em>cómo se escriben</em>
+            (cómo se generan) las cadenas válidas, y sirve también para <em>validar</em>: dada una cadena, decidir si
+            es válida o no.</p>
+        </div>
+        <div class="mini-card">
+          <h5>Semántica</h5>
+          <p>El significado que se da a las construcciones sintácticas o cadenas válidas.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>2. Qué es una gramática</h3>
+      <p>La gramática es un ente formal para especificar de una manera finita el conjunto de cadenas de símbolos que
+        constituyen un lenguaje. Formalmente es una <strong>cuádrupla</strong>:</p>
+      <div class="formula">
+        <p class="formula-main">G = (T, NT, S, P)</p>
+      </div>
+      <ul class="defs-inline">
+        <li><strong>T</strong> — conjunto finito de <strong>símbolos terminales</strong>. Todas las cadenas del
+          lenguaje están formadas por terminales; se define por enumeración.</li>
+        <li><strong>NT</strong> — conjunto finito de <strong>símbolos no terminales</strong>. Son auxiliares para la
+          definición y no figuran en las cadenas del lenguaje.</li>
+        <li><strong>S</strong> — <strong>símbolo inicial</strong>, <code>S ∈ NT</code>. A partir de él se aplican las
+          reglas para obtener las cadenas.</li>
+        <li><strong>P</strong> — las <strong>producciones</strong>: las reglas que se aplican desde <code>S</code>. Una
+          producción es una expresión de la forma <code>α → a</code>, donde <code>α</code> (lado izquierdo) es un
+          símbolo o cadena de símbolos no terminal y/o terminal, y <code>a</code> (lado derecho) es una secuencia de
+          <em>0 ó más</em> símbolos.</li>
+      </ul>
+
+      <div class="callout">
+        <p class="callout-title">Por qué importan en la práctica</p>
+        <p>Las gramáticas son modelos útiles en el diseño de software que procesa datos con estructura recursiva. El
+          ejemplo más conocido es el <strong>analizador sintáctico</strong>, el componente del compilador que se ocupa
+          de las funciones anidadas recursivamente de los lenguajes de programación: expresiones aritméticas,
+          condicionales, etc.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>3. Gramáticas independientes del contexto</h3>
+      <p>Fueron concebidas por <strong>N. Chomsky</strong> para describir los lenguajes naturales. A medida que en
+        Ciencias de la Computación se multiplicó el uso de conceptos definidos recursivamente, se hizo necesario
+        emplearlas para describir instancias de esos conceptos. Utilizan una notación natural recursiva y han tenido
+        un papel importante en la tecnología de compiladores; también se usaron para describir formatos de documentos
+        a través de la <strong>DTD</strong> que usa la comunidad XML.</p>
+      <p>Una gramática libre de contexto tiene cuatro componentes: un conjunto de <strong>terminales</strong>
+        (tokens, los símbolos elementales del lenguaje), un conjunto de <strong>no terminales</strong> (variables
+        sintácticas; cada una representa un conjunto de cadenas de terminales), un conjunto de
+        <strong>producciones</strong> —cada una con un no terminal como encabezado o lado izquierdo, una flecha y una
+        secuencia de terminales y no terminales como cuerpo— y la designación de uno de los no terminales como
+        <strong>símbolo inicial</strong>.</p>
+    </section>
+
+    <section class="block">
+      <h3>4. BNF y EBNF</h3>
+      <p>Se adopta el formalismo conocido como <strong>forma de Backus-Naur (BNF)</strong> como medio para expresar las
+        reglas de sintaxis de un lenguaje. Una gramática BNF consta de cuatro elementos:</p>
+      <ol class="rules">
+        <li>Un conjunto de <strong>símbolos terminales</strong>: constituyen las cadenas del lenguaje (tokens).</li>
+        <li>Un conjunto de <strong>símbolos no terminales</strong>: caracterizan las subfrases o expresan las
+          «categorías».</li>
+        <li>Un <strong>símbolo de inicio</strong>, que es un no terminal y a partir del cual se generan todas las
+          cadenas completas.</li>
+        <li>Un conjunto de <strong>reglas de reescritura o de producción</strong> de la forma <code>α → a</code>.</li>
+      </ol>
+      <p>Los símbolos que la gramática emplea para describir la sintaxis y que <em>no son parte</em> del lenguaje
+        descrito se llaman <strong>metasímbolos</strong>:</p>
+
+      <div class="table-wrap">
+        <table class="data">
+          <caption>Metasímbolos de BNF y EBNF</caption>
+          <thead>
+            <tr><th scope="col">BNF</th><th scope="col">EBNF</th><th scope="col">Significado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>::=</code> ó <code>→</code></td><td><code>=</code></td><td>define las producciones o reglas de reescritura</td></tr>
+            <tr><td><code>|</code></td><td><code>|</code></td><td>separa alternativas en una regla</td></tr>
+            <tr><td>—</td><td><code>[ x ]</code></td><td>ninguna o una instancia de <code>x</code> (<code>x</code>: opcional)</td></tr>
+            <tr><td>—</td><td><code>{ x }</code></td><td>ninguna o varias instancias de <code>x</code></td></tr>
+            <tr><td><code>"símbolo"</code></td><td><code>"símbolo"</code></td><td>símbolo terminal</td></tr>
+            <tr><td><code>&lt; &gt;</code></td><td>cursiva</td><td>símbolo no terminal</td></tr>
+            <tr><td><code>.</code></td><td><code>.</code></td><td>final de una producción o regla</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Los terminales pueden aparecer «entre comillas», con MAYÚSCULAS o en negrita; los no terminales,
+        en cursiva.</p>
+
+      <div class="example">
+        <p class="example-title">Ejemplo 1 — gramática BNF que define expresiones aritméticas</p>
+<pre><code>Exp      → Exp Operador Exp | ( Exp ) | Número
+Número   → Dígito | Dígito Número
+Dígito   → 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+Operador → + | * | / | -</code></pre>
+        <p>Esta forma de describir una sintaxis sirve tanto para <strong>generar</strong> expresiones aritméticas
+          válidas como para <strong>validar</strong> expresiones dadas.</p>
+        <p class="note">Esta gramática es <em>ambigua</em>: como <code>Exp → Exp Operador Exp</code> permite agrupar
+          de cualquier lado, la misma cadena admite más de un árbol. Se arregla con niveles de precedencia (ver
+          sección 7).</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>5. Árboles de análisis sintáctico</h3>
+      <p>Un árbol de análisis sintáctico muestra gráficamente cómo el símbolo inicial deriva una cadena del lenguaje.
+        Si un no terminal <code>A</code> tiene una producción <code>A → XYZ</code>, el árbol tiene un nodo interior
+        <code>A</code> con tres hijos <code>X</code>, <code>Y</code>, <code>Z</code>, de izquierda a derecha.</p>
+      <p>Formalmente, dada una gramática libre de contexto, un árbol de análisis es un árbol con estas propiedades:</p>
+      <ol class="rules">
+        <li>La <strong>raíz</strong> se etiqueta con el símbolo inicial.</li>
+        <li>Cada <strong>hoja</strong> se etiqueta con un terminal.</li>
+        <li>Cada <strong>nodo interior</strong> se etiqueta con un no terminal.</li>
+        <li>Si <code>A</code> etiqueta un nodo interior y <code>X₁, X₂, …, Xₙ</code> son las etiquetas de sus hijos de
+          izquierda a derecha, entonces debe existir una producción <code>A ::= X₁ X₂ … Xₙ</code>.</li>
+      </ol>
+
+      <div class="callout warn">
+        <p class="callout-title">Ambigüedad</p>
+        <p>Si dada una cadena del lenguaje existe <strong>más de un árbol</strong> que puede generar esa expresión, la
+          gramática se dice <strong>ambigua</strong>.</p>
+      </div>
+
+      <div class="example">
+        <p class="example-title">Ejemplo 2 — derivar y dibujar</p>
+        <p>Consideremos la gramática libre de contexto:</p>
+<pre><code>S → S S + | S S * | a</code></pre>
+        <p>a) Mostrar cómo la cadena <code>aa+a*</code> puede ser generada y mostrar el árbol.</p>
+        <p>b) ¿Cuáles de estas expresiones son correctas según esa gramática?
+          <code>aa+aa+++</code> · <code>aa+a*aa*a+</code> · <code>aaa*aaa+a+a*</code></p>
+        <p>c) Generar tres expresiones válidas del lenguaje.</p>
+        <details class="solution"><summary>Ver resolución</summary>
+          <p><strong>a)</strong> La notación es postfija: cada operador consume los dos operandos que tiene a la
+            izquierda. <code>aa+a*</code> se deriva como <code>S ⇒ S S * ⇒ S S + S * ⇒ a a + a *</code>. El árbol:</p>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 340 200" role="img" aria-label="Árbol sintáctico de la cadena aa+a*">
+              <g class="edge">
+                <line x1="170" y1="30" x2="120" y2="80"/><line x1="170" y1="30" x2="220" y2="80"/>
+                <line x1="120" y1="80" x2="80" y2="130"/><line x1="120" y1="80" x2="160" y2="130"/>
+                <line x1="220" y1="80" x2="270" y2="130"/>
+                <line x1="80" y1="130" x2="60" y2="175"/><line x1="80" y1="130" x2="100" y2="175"/>
+              </g>
+              <g class="node"><circle cx="170" cy="30" r="20"/><text x="170" y="35">S</text></g>
+              <g class="node"><circle cx="120" cy="80" r="20"/><text x="120" y="85">S</text></g>
+              <g class="node"><circle cx="220" cy="80" r="20"/><text x="220" y="85">S</text></g>
+              <g class="node"><circle cx="80" cy="130" r="20"/><text x="80" y="135">S</text></g>
+              <g class="node"><circle cx="160" cy="130" r="20"/><text x="160" y="135">S</text></g>
+              <g class="node"><circle cx="270" cy="130" r="20"/><text x="270" y="135">a</text></g>
+              <g class="node"><circle cx="60" cy="175" r="14"/><text x="60" y="180">a</text></g>
+              <g class="node"><circle cx="100" cy="175" r="14"/><text x="100" y="180">a</text></g>
+              <text class="label" x="176" y="80">+</text>
+              <text class="label" x="226" y="130">*</text>
+            </svg>
+          </div>
+          <p><strong>b)</strong> Contando operandos y operadores: una expresión postfija válida necesita que, leída de
+            izquierda a derecha, el «balance» (operandos menos operadores) nunca baje de 1 y termine exactamente en 1.
+            <code>aa+aa+++</code> tiene 4 operandos y 5 operadores: <strong>no válida</strong>.
+            <code>aa+a*aa*a+</code> tiene 6 operandos y 5 operadores y el balance nunca baja de 1:
+            <strong>válida</strong>. <code>aaa*aaa+a+a*</code> tiene 7 operandos y 6 operadores:
+            <strong>válida</strong>.</p>
+          <p><strong>c)</strong> Cualquier expresión postfija bien balanceada sirve: <code>a</code>,
+            <code>aa+</code>, <code>aa*</code>, <code>aa+a*</code>, <code>aaa++</code>.</p>
+        </details>
+      </div>
+
+      <div class="example">
+        <p class="example-title">Ejemplo 3 — gramática EBNF para sentencias en Pascal</p>
+<pre><code>Sentencia → identificador := expresión
+          | if expresión then sentencia [ else sentencia ]
+          | while expresión do sentencia
+          | begin { sentencia } end .</code></pre>
+        <p>Los corchetes marcan lo <em>opcional</em> (<code>else</code>) y las llaves la <em>repetición</em> (varias
+          sentencias dentro del bloque).</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>6. Dónde se aplican</h3>
+      <p>Las gramáticas se usan para describir lenguajes de programación. Lo más importante es que existe una forma
+        <strong>mecánica</strong> de convertir la descripción como gramática independiente del contexto en un
+        analizador sintáctico: el componente del compilador que descubre la estructura del programa fuente y la
+        representa mediante un árbol de derivación. De hecho, es una de las primeras formas en que las ideas teóricas
+        de las Ciencias de la Computación pudieron llevarse a la práctica.</p>
+      <ul class="bullets">
+        <li><strong>Analizadores sintácticos:</strong> pueden representarse identificadores mediante expresiones
+          regulares, utilización de sentencias, etc.</li>
+        <li><strong>Generador de analizadores YACC:</strong> cada producción se asocia a una acción, un fragmento de
+          código C que se ejecuta cuando se crea un nodo del árbol de derivación.</li>
+        <li><strong>Lenguajes de marcado:</strong> las etiquetas informan sobre la semántica de las cadenas del
+          documento; HTML es el más conocido.</li>
+        <li><strong>Formato de documentos (DTD):</strong> la comunidad XML usa gramáticas para describir la estructura
+          de documentos que se intercambian en la Web.</li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <h3>7. Precedencia y ambigüedad: la técnica de niveles</h3>
+      <p>Si una gramática debe representar expresiones con suma y multiplicación, donde la multiplicación se evalúa
+        antes (por ejemplo <code>2 + 3 * 4</code> se interpreta como <code>2 + (3 * 4)</code>), <strong>no alcanza
+        con una sola regla</strong>:</p>
+      <div class="math bad"><code>&lt;exp&gt; ::= &lt;exp&gt; "+" &lt;exp&gt; | &lt;exp&gt; "*" &lt;exp&gt; | &lt;dígito&gt;</code> → ambigua</div>
+      <p>Esa gramática es ambigua: <code>2 + 3 * 4</code> admite más de un árbol válido. La forma estándar de
+        resolverlo es separar la gramática en <strong>niveles</strong>, uno por cada nivel de precedencia:</p>
+      <div class="math good"><code>&lt;exp&gt; ::= &lt;exp&gt; "+" &lt;término&gt; | &lt;término&gt;</code><br>
+        <code>&lt;término&gt; ::= &lt;término&gt; "*" &lt;dígito&gt; | &lt;dígito&gt;</code></div>
+      <p>Cada nivel «envuelve» al siguiente: <code>&lt;exp&gt;</code> sólo puede combinar uno o más
+        <code>&lt;término&gt;</code> mediante <code>+</code>, y <code>&lt;término&gt;</code> sólo combina dígitos con
+        <code>*</code>. Así la multiplicación queda atrapada en un nivel más profundo del árbol y se resuelve antes
+        que la suma, <em>sin ambigüedad</em>.</p>
+
+      <div class="example">
+        <p class="example-title">Árbol de <code>2 + 5 + 1</code></p>
+        <p>Con la gramática de un solo operador <code>&lt;exp&gt; ::= &lt;exp&gt; "+" &lt;dígito&gt; | &lt;dígito&gt;</code>,
+          la derivación es por la izquierda y el árbol queda «encadenado» hacia la izquierda:</p>
+        <div class="svg-wrap">
+          <svg viewBox="0 0 380 210" role="img" aria-label="Árbol sintáctico de 2 + 5 + 1">
+            <g class="edge">
+              <line x1="190" y1="28" x2="130" y2="78"/><line x1="190" y1="28" x2="270" y2="78"/>
+              <line x1="130" y1="78" x2="70" y2="128"/><line x1="130" y1="78" x2="170" y2="128"/>
+              <line x1="70" y1="128" x2="40" y2="178"/><line x1="70" y1="128" x2="110" y2="178"/>
+            </g>
+            <g class="node"><ellipse cx="190" cy="28" rx="34" ry="18"/><text x="190" y="33">&lt;exp&gt;</text></g>
+            <g class="node"><ellipse cx="130" cy="78" rx="34" ry="18"/><text x="130" y="83">&lt;exp&gt;</text></g>
+            <g class="node"><circle cx="270" cy="78" r="16"/><text x="270" y="83">1</text></g>
+            <g class="node"><ellipse cx="70" cy="128" rx="34" ry="18"/><text x="70" y="133">&lt;exp&gt;</text></g>
+            <g class="node"><circle cx="170" cy="128" r="16"/><text x="170" y="133">5</text></g>
+            <g class="node"><circle cx="40" cy="178" r="16"/><text x="40" y="183">2</text></g>
+            <g class="node"><circle cx="110" cy="178" r="16"/><text x="110" y="183">+</text></g>
+            <text class="label" x="200" y="78">+</text>
+          </svg>
+        </div>
+        <p>Las hojas, leídas de izquierda a derecha, dan <code>2 + 5 + 1</code>. Como <code>+</code> es asociativo por
+          la izquierda, <code>(2 + 5) + 1</code> es la lectura correcta: eso es exactamente lo que muestra la forma
+          del árbol.</p>
+      </div>
+
+      <div class="example">
+        <p class="example-title">Ejemplo 4 — <code>9 − 5 + 2</code></p>
+<pre><code>&lt;exp&gt;    ::= &lt;exp&gt; "+" &lt;dígito&gt; | &lt;exp&gt; "-" &lt;dígito&gt; | &lt;dígito&gt;
+&lt;dígito&gt; ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"</code></pre>
+        <p>Terminales: <code>0 1 2 3 4 5 6 7 8 9 + -</code>. La expresión <code>9 − 5 + 2</code> se deriva encadenando:
+          primero <code>&lt;exp&gt; "-" &lt;dígito&gt;</code> con <code>9 − 5</code>, y después
+          <code>&lt;exp&gt; "+" &lt;dígito&gt;</code> con el <code>2</code>.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>8. Verificación con Lark (como pide el práctico)</h3>
+      <p>Todas las gramáticas del práctico se implementan y prueban con la biblioteca <strong>Lark</strong> de Python.
+        Con <code>parser='lalr'</code> y <code>strict=True</code>, Lark <em>rechaza</em> la gramática con un error
+        explícito si hay algún conflicto de precedencia sin resolver, en lugar de elegir un árbol en silencio como
+        haría el parser por defecto (Earley). Instalación:</p>
+      <div class="code-inline">pip install "lark[interegular]" pydot</div>
+      <div class="callout warn">
+        <p class="callout-title">El extra <code>interegular</code> es imprescindible</p>
+        <p>Sin él, <code>strict=True</code> falla con
+          <code>LexError: interegular must be installed for strict mode</code> incluso con una gramática bien escrita.
+          No es un error de la gramática.</p>
+      </div>
+      <div class="example">
+        <p class="example-title">Plantilla de código</p>
+<pre><code>from lark import Lark, tree
+import subprocess
+
+gramatica = """
+    exp: exp "+" termino | termino
+    termino: termino "*" digito | digito
+    digito: NUMERO
+    NUMERO: "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9"
+    %ignore " "
+"""
+
+analizador = Lark(gramatica, start='exp', parser='lalr', strict=True)
+
+expresion = "3+5*2"
+try:
+    arbol = analizador.parse(expresion)
+    print(f"Expresión: {expresion}")
+    print("Árbol de análisis sintáctico:")
+    print(arbol.pretty())
+    tree.pydot__tree_to_png(arbol, "arbol.png", rankdir="TB")
+except Exception as e:
+    print(f"Error en el análisis: {e}")
+    print("Verificar la gramática o la expresión de entrada")</code></pre>
+        <p class="note">Para varios dígitos, se reemplaza el terminal por <code>NUMERO: /[0-9]+/</code>. Para
+          identificadores, <code>IDENTIFICADOR: /[a-zA-Z_][a-zA-Z0-9_]*/</code>. Los literales de palabra clave
+          (<code>"if"</code>, <code>"then"</code>, <code>"else"</code>, <code>"while"</code>, <code>"AND"</code>,
+          <code>"OR"</code>, <code>"NOT"</code>) definidos en las reglas tienen prioridad sobre ese terminal genérico:
+          Lark no los confunde con un identificador.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>9. Los enunciados del práctico, resueltos</h3>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 1 — gramática simple, un solo operador</p>
+        <p>Definir una gramática que represente expresiones con suma, dígitos del 0 al 9 y múltiples sumas en
+          secuencia. Luego construir el árbol de <code>2 + 5 + 1</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+<pre><code>exp: exp "+" digito | digito
+digito: NUMERO
+NUMERO: "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9"
+%ignore " "</code></pre>
+          <p>Es no ambigua porque <code>exp</code> sólo aparece a la izquierda de <code>+</code> (recursión por la
+            izquierda): la única lectura posible es <code>((2 + 5) + 1)</code>. El árbol es el de la sección 7.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 2 — cuatro operaciones, paréntesis y precedencia</p>
+        <p>Suma, resta, multiplicación y división respetando la precedencia habitual, con paréntesis para agrupar.
+          Árbol de <code>3 * (2 + 4) / (1 + 5)</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+<pre><code>exp:     exp "+" termino | exp "-" termino | termino
+termino: termino "*" factor | termino "/" factor | factor
+factor:  "(" exp ")" | NUMERO
+NUMERO:  "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9"
+%ignore " "</code></pre>
+          <p>Hay tres niveles: <code>exp</code> (suma/resta), <code>termino</code> (producto/cociente) y
+            <code>factor</code> (paréntesis o número). El paréntesis reaparece en <code>factor</code>, el nivel más
+            profundo, y por eso «vuelve a subir» a la precedencia más baja dentro de él.</p>
+          <p><strong>Árbol de <code>3 * (2 + 4) / (1 + 5)</code>:</strong> la raíz es <code>/</code>, a la izquierda el
+            producto <code>3 * (2 + 4)</code> y a la derecha el paréntesis <code>(1 + 5)</code>. La división queda
+            arriba porque es la última operación en evaluarse por asociatividad izquierda:
+            <code>((3 * (2 + 4)) / (1 + 5))</code>.</p>
+<pre><code>exp
+└── termino
+    ├── termino
+    │   ├── factor → 3
+    │   ├── "*"
+    │   └── factor
+    │       ├── "("
+    │       ├── exp → exp("+")termino(→2) , termino(→4)
+    │       └── ")"
+    ├── "/"
+    └── factor
+        ├── "("
+        ├── exp → 1 + 5
+        └── ")"</code></pre>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 3 — aceptar números de más de un dígito</p>
+        <p>Mejorar la gramática anterior para aceptar <code>(33 + 54) * 223 − 8 / 14</code>. Árbol de
+          <code>35 * (12 + 4) / (15 + 225)</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>El único cambio es el terminal: <code>NUMERO: /[0-9]+/</code>. No cambia la estructura ni los niveles de
+            precedencia; el árbol tiene exactamente la misma forma que en el enunciado 2, con <code>35</code>,
+            <code>12 + 4</code> y <code>15 + 225</code> como hojas de un solo nodo.</p>
+<pre><code>NUMERO: /[0-9]+/</code></pre>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 4 — aritmética + lógica + relacionales</p>
+        <p>Combinar operaciones aritméticas, lógicas (<code>AND</code>, <code>OR</code>, <code>NOT</code> con su
+          precedencia: NOT antes que AND, AND antes que OR), comparaciones (<code>&gt;</code>, <code>&lt;</code>,
+          <code>==</code>) entre expresiones aritméticas e identificadores. Árbol de
+          <code>((3 + 4) > 2) OR NOT (5 == 5 AND 2 < 1)</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+<pre><code>?inicio: exp_logica
+
+?exp_logica: exp_logica "OR" exp_and
+           | exp_and
+
+?exp_and:    exp_and "AND" exp_not
+           | exp_not
+
+?exp_not:    "NOT" exp_not
+           | exp_rel
+
+?exp_rel:    exp_arit "==" exp_arit
+           | exp_arit "&gt;" exp_arit
+           | exp_arit "&lt;" exp_arit
+           | exp_arit
+
+?exp_arit:   exp_arit "+" termino
+           | exp_arit "-" termino
+           | termino
+
+?termino:    termino "*" factor
+           | termino "/" factor
+           | factor
+
+?factor:     "(" exp_logica ")"
+           | IDENTIFICADOR
+           | NUMERO
+
+IDENTIFICADOR: /[a-zA-Z_][a-zA-Z0-9_]*/
+NUMERO: /[0-9]+/
+%ignore " "</code></pre>
+          <p>Cada operador queda en su propio nivel, de menor a mayor precedencia: <code>OR</code> →
+            <code>AND</code> → <code>NOT</code> → relacionales → <code>+ −</code> → <code>* /</code> → paréntesis.
+            La raíz del árbol de la expresión pedida es <code>OR</code>; su hijo izquierdo es la comparación
+            <code>(3 + 4) &gt; 2</code>, y su hijo derecho es <code>NOT</code> aplicado al <code>AND</code> de
+            <code>5 == 5</code> y <code>2 &lt; 1</code>.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 5 — estructuras de control</p>
+        <p>Gramática para <code>if-else</code> (con <code>else</code> siempre obligatorio), <code>while</code>,
+          asignación y secuencia separada por <code>;</code>, reutilizando las expresiones del enunciado 4. Árbol de
+          <code>if (a == b) then a = a + 1 else a = 0; while (a &lt; 5) a = a + 1</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+<pre><code>programa: sentencia (";" sentencia)*
+
+?sentencia: "if" "(" exp_logica ")" "then" sentencia "else" sentencia
+          | "while" "(" exp_logica ")" sentencia
+          | asignacion
+          | "{" programa "}"
+
+asignacion: IDENTIFICADOR "=" exp_arit
+# ... más las reglas de expresión del enunciado 4</code></pre>
+          <p><strong>Por qué el <code>else</code> es obligatorio:</strong> con <code>else</code> opcional aparecería
+            el clásico conflicto <em>dangling else</em> (shift/reduce): ante
+            <code>if (c1) if (c2) s1 else s2</code> el parser no puede decidir a qué <code>if</code> pertenece el
+            <code>else</code>. Exigiéndolo siempre, cada <code>if</code> consume su propio <code>else</code> y la
+            gramática queda no ambigua. Lark lo detectaría al construir el analizador con
+            <code>parser='lalr', strict=True</code>, antes de parsear nada.</p>
+          <p>El árbol del ejemplo es un <code>;</code> cuyo hijo izquierdo es el <code>if</code> y cuyo hijo derecho es
+            el <code>while</code>.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Ejercicios extra</h3>
+      <div class="exercise">
+        <p class="exercise-title">1. Derivar paso a paso</p>
+        <p>Con <code>S → SS+ | SS* | a</code>, derivar <code>aa*</code> e indicar si el árbol es único.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p><code>S ⇒ SS* ⇒ aS* ⇒ aa*</code>. El árbol es único: la cadena tiene 2 operandos y 1 operador, y el
+            único modo de aplicar la regla con <code>*</code> es consumiendo las dos <code>a</code>. La gramática
+            <em>no</em> es ambigua en general: lo es sólo cuando hay más de un operador, porque
+            <code>SS+SS*</code> admite distintos agrupamientos.</p>
+        </details>
+      </div>
+      <div class="exercise">
+        <p class="exercise-title">2. Detectar la ambigüedad</p>
+        <p>¿Por qué <code>&lt;exp&gt; ::= &lt;exp&gt; "+" &lt;exp&gt; | &lt;dígito&gt;</code> es ambigua y
+          <code>&lt;exp&gt; ::= &lt;exp&gt; "+" &lt;dígito&gt; | &lt;dígito&gt;</code> no lo es?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>En la primera, el no terminal aparece a <em>ambos</em> lados del operador, así que <code>2+5+1</code>
+            admite <code>(2+5)+1</code> y <code>2+(5+1)</code>. En la segunda, sólo puede aparecer a la izquierda
+            (recursión por la izquierda): la derivación se encadena siempre del mismo modo y hay un único árbol.</p>
+        </details>
+      </div>
+      <div class="exercise">
+        <p class="exercise-title">3. EBNF a BNF</p>
+        <p>Traducir <code>Direccion ::= calle [numero] {"," calle}</code> a notación BNF.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>El corchete se abre en dos alternativas y las llaves se resuelven con recursión:
+            <code>Direccion ::= Calle OpcionalNumero RestoCalles</code>,
+            <code>OpcionalNumero ::= numero | λ</code>,
+            <code>RestoCalles ::= "," Calle RestoCalles | λ</code>.</p>
+        </details>
+      </div>
+      <div class="exercise">
+        <p class="exercise-title">4. Contar niveles</p>
+        <p>¿Cuántos niveles de precedencia necesita una gramática con <code>OR</code>, <code>AND</code>,
+          <code>NOT</code>, <code>==</code>, <code>+ −</code> y <code>* /</code>?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>Seis niveles, uno por grupo de igual precedencia, ordenados de menor a mayor: <code>OR</code>;
+            <code>AND</code>; <code>NOT</code>; relacionales; <code>+ −</code>; <code>* /</code>. Los paréntesis no
+            forman un nivel aparte: se resuelven en el nivel más profundo (el factor).</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Autoevaluación</h3>
+      <div class="quiz">
+        <div class="q" data-answer="1">
+          <p class="q-text">1. Una gramática formal es…</p>
+          <label><input type="radio" name="g1" value="0"> un par (Σ, Q)</label>
+          <label><input type="radio" name="g1" value="1"> una cuádrupla G = (T, NT, S, P)</label>
+          <label><input type="radio" name="g1" value="2"> una quíntupla G = (Q, Σ, δ, q₀, F)</label>
+          <p class="why">La quíntupla es la del autómata finito. La gramática es (terminales, no terminales, símbolo
+            inicial, producciones).</p>
+        </div>
+        <div class="q" data-answer="2">
+          <p class="q-text">2. Los símbolos que la gramática usa para describirse pero que no son parte del lenguaje
+            se llaman…</p>
+          <label><input type="radio" name="g2" value="0"> terminales</label>
+          <label><input type="radio" name="g2" value="1"> no terminales</label>
+          <label><input type="radio" name="g2" value="2"> metasímbolos</label>
+          <p class="why">Por ejemplo <code>|</code>, <code>[ ]</code>, <code>{ }</code>, <code>::=</code>.</p>
+        </div>
+        <div class="q" data-answer="0">
+          <p class="q-text">3. En EBNF, <code>{ x }</code> significa…</p>
+          <label><input type="radio" name="g3" value="0"> ninguna o varias instancias de x</label>
+          <label><input type="radio" name="g3" value="1"> ninguna o una instancia de x</label>
+          <label><input type="radio" name="g3" value="2"> exactamente una instancia de x</label>
+          <p class="why">Los corchetes <code>[ x ]</code> son lo opcional; las llaves, la repetición.</p>
+        </div>
+        <div class="q" data-answer="1">
+          <p class="q-text">4. Una gramática es ambigua cuando…</p>
+          <label><input type="radio" name="g4" value="0"> alguna cadena no puede derivarse</label>
+          <label><input type="radio" name="g4" value="1"> alguna cadena admite más de un árbol de análisis</label>
+          <label><input type="radio" name="g4" value="2"> tiene más de un símbolo inicial</label>
+          <p class="why">Una gramática tiene un solo símbolo inicial por definición.</p>
+        </div>
+        <div class="q" data-answer="1">
+          <p class="q-text">5. En <code>exp: exp "+" termino | termino</code>,
+            <code>termino: termino "*" digito | digito</code>, ¿por qué <code>*</code> se evalúa primero?</p>
+          <label><input type="radio" name="g5" value="0"> porque el carácter <code>*</code> tiene más prioridad en Lark</label>
+          <label><input type="radio" name="g5" value="1"> porque <code>termino</code> es un nivel más profundo: la suma combina términos ya formados</label>
+          <label><input type="radio" name="g5" value="2"> porque <code>*</code> está escrito antes</label>
+          <p class="why">La precedencia sale de la forma de la gramática, no de las herramientas ni del orden de
+            escritura.</p>
+        </div>
+        <button class="btn btn-primary" data-check>Corregir</button>
+        <p class="score" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="block sources">
+      <h3>Fuentes de la unidad</h3>
+      <ul class="source-list">
+        <li><strong>TP2 – Gramáticas</strong> (teórico, cátedra Programación II).</li>
+        <li><strong>TP1 – Gramáticas BNF / EBNF</strong> (Programación I, 2010 — mismo material base).</li>
+        <li><strong>Gramática — Trabajo práctico</strong> (enunciados 1 a 5 y guía de Lark).</li>
+      </ul>
+      <details class="slides">
+        <summary>Láminas del teórico en Pitch</summary>
+        <div class="slides-list" data-deck="gramaticas"></div>
+      </details>
+    </section>
+  </section>
+
+  <!-- ==================================================================== -->
+  <!-- 03 · MÁQUINAS DE TURING                                              -->
+  <!-- ==================================================================== -->
+  <section class="panel" id="panel-turing" role="tabpanel" aria-labelledby="tab-turing" tabindex="0" hidden>
+
+    <div class="panel-head">
+      <h2>Máquinas de Turing</h2>
+      <p class="panel-lead">La máquina abstracta con la que Turing describió la noción de <em>algoritmo</em>: una
+        cinta infinita, un cabezal que lee y escribe, y un conjunto finito de instrucciones.</p>
+    </div>
+
+    <section class="block">
+      <h3>1. La idea</h3>
+      <p>Turing construyó una máquina abstracta —una máquina matemática— conocida hoy como
+        <strong>Máquina de Turing</strong>, con la cual describió la noción de <strong>ALGORITMO</strong>. Un
+        algoritmo recibe datos de entrada, los procesa y genera resultados. Cuando ejecutamos un algoritmo a mano
+        usamos el papel como mecanismo de entrada-salida; la máquina de Turing usa una <strong>cinta infinita</strong>.</p>
+      <p>La cinta está dividida en celdas, cada una puede contener <em>un solo</em> símbolo de un alfabeto finito de
+        símbolos indivisibles (el símbolo vacío o blanco se representa <code>□</code> y por convención forma parte de
+        ese alfabeto). Técnicamente es una cinta unidimensional <strong>bi-infinita</strong>: infinita en ambos
+        extremos.</p>
+      <div class="svg-wrap">
+        <svg viewBox="0 0 620 130" role="img" aria-label="Cinta bi-infinita con celdas, cabezal y símbolo blanco">
+          <text class="label" x="8" y="78">…</text>
+          <g class="tape">
+            <rect x="30" y="35" width="62" height="62"/><rect x="92" y="35" width="62" height="62"/>
+            <rect x="154" y="35" width="62" height="62" class="hi"/><rect x="216" y="35" width="62" height="62"/>
+            <rect x="278" y="35" width="62" height="62"/><rect x="340" y="35" width="62" height="62"/>
+            <rect x="402" y="35" width="62" height="62"/><rect x="464" y="35" width="62" height="62"/>
+            <rect x="526" y="35" width="62" height="62"/>
+          </g>
+          <g class="tape-text">
+            <text x="61" y="74">□</text><text x="123" y="74">0</text><text x="185" y="74">0</text>
+            <text x="247" y="74">1</text><text x="309" y="74">1</text><text x="371" y="74">□</text>
+            <text x="433" y="74">□</text><text x="495" y="74">□</text><text x="557" y="74">□</text>
+          </g>
+          <polygon class="head" points="185,22 173,4 197,4"/>
+          <text class="label" x="152" y="112">cabezal: lee, escribe y se mueve (I, D o S)</text>
+          <text class="label" x="556" y="78">…</text>
+        </svg>
+      </div>
+      <p>En cada instante (discreto) de tiempo la máquina «observa» una celda y puede leer-escribir un símbolo sobre
+        ella. Además puede desplazarse una celda a la <strong>derecha</strong>, una a la
+        <strong>izquierda</strong>, o no desplazarse. Junto al alfabeto tiene un conjunto finito de
+        <strong>estados</strong>, que representan el estado en el que está la máquina.</p>
+    </section>
+
+    <section class="block">
+      <h3>2. Situación e instrucción</h3>
+      <p>Una <strong>situación</strong> es una dupla formada por un <strong>estado</strong> (del conjunto finito de
+        estados) y un <strong>símbolo</strong> (del alfabeto). En cada instante la situación actual está determinada
+        por el estado en que se encuentra y por el símbolo de la celda sobre la que está situada: leer el símbolo es
+        automático. Antes de comenzar hay que definir la <strong>situación inicial</strong>: estado inicial y
+        posición inicial sobre la cinta.</p>
+      <p>El elemento más importante es el <strong>conjunto finito de instrucciones</strong>: representa el
+        comportamiento de la máquina. Cada instrucción tiene dos partes: la primera dice <em>cuándo</em> se debe
+        ejecutar (en qué situación: estado, símbolo) y la segunda indica <em>qué hace</em>. Cada instrucción está
+        compuesta por <strong>cinco elementos</strong>:</p>
+      <div class="five">
+        <div class="five-item"><span>1</span>estado actual</div>
+        <div class="five-item"><span>2</span>símbolo a leer</div>
+        <div class="five-item"><span>3</span>símbolo a escribir</div>
+        <div class="five-item"><span>4</span>movimiento</div>
+        <div class="five-item"><span>5</span>estado siguiente</div>
+      </div>
+      <p class="note">Los dos primeros indican <strong>cuándo</strong>; los tres restantes, <strong>qué hacer</strong>.</p>
+
+      <h4>Cómo opera</h4>
+      <ol class="rules">
+        <li>La máquina busca en su conjunto de instrucciones una que concuerde con la situación actual.</li>
+        <li>Si la encuentra, la ejecuta: escribe el símbolo, realiza el movimiento y pasa al estado indicado.</li>
+        <li>Ahora está en una nueva situación actual y repite el proceso.</li>
+        <li>Si <strong>no</strong> encuentra una instrucción que concuerde, la máquina <strong>se detiene</strong> y se
+          da por finalizada su ejecución.</li>
+      </ol>
+      <div class="callout">
+        <p class="callout-title">Determinísticas y no determinísticas</p>
+        <p>¿Es posible que la máquina tenga más de una instrucción para una misma situación? Según la respuesta hay dos
+          clases: las <strong>determinísticas</strong>, que no permiten definir más de una instrucción por situación,
+          y las <strong>no determinísticas</strong>, que sí lo permiten.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>3. Definición formal</h3>
+      <p>Formalmente una máquina de Turing es un autómata y, como todo autómata, está formada por una quíntupla
+        <code>MT = (E, S, Q, f, g)</code>; sin embargo suele usarse la notación equivalente:</p>
+      <div class="formula">
+        <p class="formula-main">MT = (Q, Σ, Γ, δ, q₀, B, F)</p>
+      </div>
+      <ul class="defs-inline">
+        <li><strong>Q</strong> — conjunto de estados.</li>
+        <li><strong>Γ</strong> — conjunto de símbolos permitidos en la cinta.</li>
+        <li><strong>B ∈ Γ</strong> — el símbolo blanco.</li>
+        <li><strong>Σ ∈ Γ</strong> — subconjunto de símbolos de entrada, <em>sin</em> incluir el blanco.</li>
+        <li><strong>δ : Q × Γ → Q × Γ × {I, D, S}</strong> — función del siguiente movimiento. <code>I</code>:
+          movimiento a izquierda; <code>D</code>: movimiento a derecha; <code>S</code>: parada (<em>stop</em>).</li>
+        <li><strong>q₀ ∈ Q</strong> — estado inicial.</li>
+        <li><strong>F ⊂ Q</strong> — subconjunto de estados finales.</li>
+      </ul>
+      <p>El lenguaje aceptado o reconocido por una máquina de Turing, <code>L(MT)</code>, es el conjunto de palabras
+        formadas con el alfabeto <code>Σ*</code> que hacen que la máquina se pare al alcanzar un estado final. Al
+        principio la cabeza está situada a la izquierda de la cadena a reconocer y su estado es <code>q₀</code>:</p>
+      <div class="formula">
+        <p class="formula-main">L(MT) = { W / W ∈ Σ* &nbsp;y&nbsp; q₀W → α₁pα₂ &nbsp;con&nbsp; p ∈ F, α₁,α₂ ∈ Γ* }</p>
+      </div>
+      <p>Una MT <strong>reconoce</strong> un lenguaje <code>L</code> si es capaz de reconocer todas las sentencias de
+        <code>L</code>. Si una sentencia es aceptada, la máquina se para (alcanza un estado final); si no se acepta,
+        <strong>no se parará nunca</strong>.</p>
+    </section>
+
+    <section class="block">
+      <h3>4. Ejemplo resuelto: <code>L = { 0ⁿ1ⁿ / n ≥ 1 }</code></h3>
+      <p>Inicialmente la cinta contiene <code>0ⁿ1ⁿ</code>, seguido por ambos lados por un número infinito de
+        blancos.</p>
+      <p><strong>Algoritmo de reconocimiento:</strong> la cabeza se coloca en el <code>0</code> más a la izquierda y lo
+        reemplaza por una <code>X</code>; se mueve a la derecha hasta encontrar el <code>1</code> más a la izquierda y
+        lo reemplaza por una <code>Y</code>; después se mueve a la izquierda hasta encontrar la <code>X</code> más a la
+        derecha, entonces se mueve una celda a la derecha y repite el ciclo.</p>
+      <p>La máquina es <code>MT = (Q, Σ, Γ, δ, q₀, B, F)</code> con <code>Q = {q₀, q₁, q₂, q₃, q₄}</code>,
+        <code>Σ = {0, 1}</code>, <code>Γ = {0, 1, X, Y, B}</code>, <code>F = {q₄}</code> y <code>q₀</code> inicial.
+        La función <code>δ</code> viene dada por la tabla:</p>
+
+      <div class="table-wrap">
+        <table class="data mono">
+          <caption>Función de transición δ</caption>
+          <thead>
+            <tr><th scope="col">δ</th><th scope="col">0</th><th scope="col">1</th><th scope="col">X</th><th scope="col">Y</th><th scope="col">B</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">→ q₀</th><td>(q₁, X, D)</td><td>—</td><td>—</td><td>(q₃, Y, D)</td><td>—</td></tr>
+            <tr><th scope="row">q₁</th><td>(q₁, 0, D)</td><td>(q₂, Y, I)</td><td>—</td><td>(q₁, Y, D)</td><td>—</td></tr>
+            <tr><th scope="row">q₂</th><td>(q₂, 0, I)</td><td>—</td><td>(q₀, X, D)</td><td>(q₂, Y, I)</td><td>—</td></tr>
+            <tr><th scope="row">q₃</th><td>—</td><td>—</td><td>—</td><td>(q₃, Y, D)</td><td>(q₄, B, S)</td></tr>
+            <tr><th scope="row">* q₄</th><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Los guiones significan estados imposibles (situaciones no definidas: si la máquina llega a una
+        de ellas, se detiene sin aceptar). La máquina <strong>primero escribe, luego cambia de estado y por último se
+        mueve</strong>.</p>
+
+      <div class="example">
+        <p class="example-title">Traza de la cadena 0011</p>
+        <p class="trace">q₀0011 → Xq₁011 → X0q₁11 → Xq₂0Y1 → q₂X0Y1 → Xq₀0Y1 → XXq₁Y1 → XXYq₁1 → XXq₂YY →
+          Xq₂XYY → XXq₀YY → XXYq₃Y → XXYYq₃ → XXYYBq₄ → <strong>S</strong></p>
+        <p>Se acepta: la máquina se detiene en <code>q₄ ∈ F</code>. La posición del estado en cada paso marca dónde
+          está el cabezal, y se ve el patrón: se van marcando <code>0</code> con <code>X</code> a la izquierda y
+          <code>1</code> con <code>Y</code> a la derecha hasta que no quedan parejas.</p>
+      </div>
+
+      <div class="svg-wrap">
+        <svg viewBox="0 0 660 120" role="img" aria-label="Estado final de la cinta para la cadena 0011">
+          <g class="tape">
+            <rect x="20" y="30" width="60" height="60" class="hi"/><rect x="80" y="30" width="60" height="60" class="hi"/>
+            <rect x="140" y="30" width="60" height="60"/><rect x="200" y="30" width="60" height="60"/>
+            <rect x="260" y="30" width="60" height="60" class="hi"/><rect x="320" y="30" width="60" height="60"/>
+            <rect x="380" y="30" width="60" height="60"/>
+          </g>
+          <g class="tape-text">
+            <text x="50" y="68">X</text><text x="110" y="68">X</text><text x="170" y="68">Y</text>
+            <text x="230" y="68">Y</text><text x="290" y="68">B</text><text x="350" y="68">□</text>
+            <text x="410" y="68">□</text>
+          </g>
+          <polygon class="head" points="290,18 278,0 302,0"/>
+          <text class="label" x="20" y="108">Cinta al aceptar: XXYYB, cabezal en q₄. Los 0 quedaron como X y los 1 como Y.</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>5. Ejercicios</h3>
+      <p class="note">El PDF del TP4 trae la sección «2. PRÁCTICO» sin enunciados (la página está vacía en el
+        documento). Estos ejercicios siguen el modelo del ejemplo resuelto del teórico.</p>
+
+      <div class="exercise">
+        <p class="exercise-title">1. Definir formalmente</p>
+        <p>Escribir la definición formal completa de la máquina que reconoce <code>{0ⁿ1ⁿ / n ≥ 1}</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p><code>MT = (Q, Σ, Γ, δ, q₀, B, F)</code> con <code>Q = {q₀, q₁, q₂, q₃, q₄}</code>,
+            <code>Σ = {0, 1}</code>, <code>Γ = {0, 1, X, Y, B}</code>, <code>B</code> el blanco,
+            <code>q₀</code> inicial, <code>F = {q₄}</code> y <code>δ</code> la tabla de la sección 4. Observar que
+            <code>Σ ⊂ Γ</code> y que <code>B ∉ Σ</code>, como exige la definición.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">2. Trazar a mano</p>
+        <p>Ejecutar la máquina anterior con la cadena <code>001</code> y decidir si se acepta.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p><code>q₀001 → Xq₁01 → X0q₁1 → Xq₂0Y</code>. Ahora el cabezal está en <code>q₂</code> leyendo
+            <code>0</code>: aplica <code>(q₂, 0, I)</code> y vuelve a la izquierda hasta la <code>X</code>:
+            <code>Xq₂0Y → q₂X0Y</code>, luego <code>(q₂, X, D)</code> da <code>Xq₀0Y</code>, y con
+            <code>(q₀, 0, D)</code> queda <code>XXq₁Y</code>. En <code>q₁</code> leyendo <code>Y</code> va a la
+            derecha: <code>XXYq₁B</code>. En <code>q₁</code> leyendo <code>B</code> no hay transición: la máquina se
+            detiene en <code>q₁ ∉ F</code>. <strong>No se acepta</strong>: faltaba un <code>1</code>.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">3. ¿Determinística o no?</p>
+        <p>¿La máquina del ejemplo es determinística? Justificar mirando la tabla.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>Sí. En cada celda de la tabla hay a lo sumo <em>una</em> instrucción: para cada par
+            <code>(estado, símbolo)</code> existe como máximo un movimiento posible. Que falten celdas no la hace no
+            determinística: la hace <strong>incompleta</strong>, y en esas situaciones simplemente se detiene.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">4. Diseñar otra máquina</p>
+        <p>Diseñar una MT que reconozca el lenguaje de las cadenas sobre <code>{a, b}</code> que tienen igual cantidad
+          de <code>a</code> que de <code>b</code>. Explicar el algoritmo en palabras.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p><strong>Algoritmo:</strong> se recorre la cinta buscando la primera letra sin marcar; si es
+            <code>a</code>, se la reemplaza por <code>X</code> y se busca la primera <code>b</code> sin marcar para
+            reemplazarla por <code>Y</code> (y viceversa si la primera es <code>b</code>); se vuelve al extremo
+            izquierdo y se repite. Si en algún momento aparece una <code>a</code> sin pareja <code>b</code> (o al
+            revés), se va a un estado de no aceptación. Si se llega a todos los símbolos marcados, se acepta.</p>
+          <p>Con estados análogos a los seis del ejemplo anterior (buscar primera letra, buscar pareja, volver) alcanza.
+            Lo importante es que la máquina usa <strong>la cinta como memoria</strong>: eso es exactamente lo que un
+            autómata finito no puede hacer.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">5. Qué significa «no se para»</p>
+        <p>Si una cadena no pertenece al lenguaje, ¿qué hace la máquina del ejemplo?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>No se detiene nunca (o se detiene en un estado que no es final, si la tabla es incompleta y llega a una
+            situación sin transición). En la definición del teórico: «si no se acepta la sentencia, la máquina de
+            Turing no se parará nunca». Es la diferencia entre <em>rechazar</em> y <em>no aceptar</em>.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Autoevaluación</h3>
+      <div class="quiz">
+        <div class="q" data-answer="2">
+          <p class="q-text">1. La cinta de una máquina de Turing es…</p>
+          <label><input type="radio" name="t1" value="0"> finita y de una sola dirección</label>
+          <label><input type="radio" name="t1" value="1"> infinita sólo hacia la derecha</label>
+          <label><input type="radio" name="t1" value="2"> bi-infinita, dividida en celdas de un símbolo</label>
+          <p class="why">Es unidimensional y bi-infinita: infinita en ambos extremos.</p>
+        </div>
+        <div class="q" data-answer="1">
+          <p class="q-text">2. Una instrucción se compone de…</p>
+          <label><input type="radio" name="t2" value="0"> estado actual y símbolo leído</label>
+          <label><input type="radio" name="t2" value="1"> estado actual, símbolo leído, símbolo escrito, movimiento y estado siguiente</label>
+          <label><input type="radio" name="t2" value="2"> estado inicial y estado final</label>
+          <p class="why">Los dos primeros indican cuándo; los tres restantes, qué hacer.</p>
+        </div>
+        <div class="q" data-answer="0">
+          <p class="q-text">3. En <code>δ : Q × Γ → Q × Γ × {I, D, S}</code>, la <code>S</code> significa…</p>
+          <label><input type="radio" name="t3" value="0"> parada (stop)</label>
+          <label><input type="radio" name="t3" value="1"> salto</label>
+          <label><input type="radio" name="t3" value="2"> siguiente estado</label>
+          <p class="why">I = izquierda, D = derecha, S = parada.</p>
+        </div>
+        <div class="q" data-answer="1">
+          <p class="q-text">4. Cuando la máquina no encuentra instrucción para la situación actual…</p>
+          <label><input type="radio" name="t4" value="0"> vuelve al estado inicial</label>
+          <label><input type="radio" name="t4" value="1"> se detiene y se da por finalizada su ejecución</label>
+          <label><input type="radio" name="t4" value="2"> elige al azar entre las disponibles</label>
+          <p class="why">La detención por ausencia de instrucción es parte de la definición de su funcionamiento.</p>
+        </div>
+        <div class="q" data-answer="2">
+          <p class="q-text">5. En la máquina de <code>{0ⁿ1ⁿ}</code>, el orden de acciones de cada paso es…</p>
+          <label><input type="radio" name="t5" value="0"> moverse, escribir, cambiar de estado</label>
+          <label><input type="radio" name="t5" value="1"> cambiar de estado, moverse, escribir</label>
+          <label><input type="radio" name="t5" value="2"> escribir, cambiar de estado, moverse</label>
+          <p class="why">Primero escribe, luego cambia de estado y por último se mueve.</p>
+        </div>
+        <button class="btn btn-primary" data-check>Corregir</button>
+        <p class="score" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="block sources">
+      <h3>Fuentes de la unidad</h3>
+      <ul class="source-list">
+        <li><strong>TP4 – Máquinas de Turing</strong> (teórico de la cátedra; ejemplo resuelto y traza de 0011).</li>
+      </ul>
+      <details class="slides">
+        <summary>Láminas del teórico en Pitch</summary>
+        <div class="slides-list" data-deck="turing"></div>
+      </details>
+    </section>
+  </section>
+
+  <!-- ==================================================================== -->
+  <!-- 04 · AUTÓMATAS FINITOS                                               -->
+  <!-- ==================================================================== -->
+  <section class="panel" id="panel-automatas" role="tabpanel" aria-labelledby="tab-automatas" tabindex="0" hidden>
+
+    <div class="panel-head">
+      <h2>Autómatas finitos</h2>
+      <p class="panel-lead">La máquina abstracta más simple: lee una cadena símbolo por símbolo y responde
+        <em>sí</em> o <em>no</em>. Definición formal de AFD y AFND, diagramas, tablas y los cinco enunciados del
+        práctico resueltos.</p>
+    </div>
+
+    <section class="block">
+      <h3>1. Qué es un autómata (y qué no)</h3>
+      <p>Está muy extendida una idea que confunde autómata con robot, y se cree que es una máquina que imita funciones
+        típicas de los seres vivos, sobre todo el movimiento. En realidad el concepto es mucho más general: un
+        <strong>dispositivo que procesa cadenas de símbolos</strong> que recibe como entrada, cambiando de estado y
+        produciendo una salida que, en algunos casos, puede ser otra cadena.</p>
+      <p>La teoría de autómatas se ocupa de clasificar y estudiar sistemáticamente distintos tipos de máquinas
+        abstractas que hacen un procesamiento <strong>secuencial</strong> de la información. Los autómatas finitos
+        son el grupo de máquinas <strong>más sencillas</strong> y, por lo tanto, con menor poder funcional.</p>
+      <p>Se usan para modelar el comportamiento de dispositivos mecánicos y también de sistemas naturales: permiten
+        estudiar procesos que dependen de una <strong>historia</strong>, es decir, sistemas cuyo comportamiento actual
+        depende del pasado. También se aplican al procesamiento del lenguaje natural, pero en esta asignatura su
+        principal aplicación es el <strong>reconocimiento de lenguajes regulares</strong>.</p>
+      <p>Un autómata finito es una máquina con un número finito de estados que lee símbolos de una cinta de entrada
+        infinita. Su comportamiento está determinado <em>únicamente</em> por el estado en que se encuentra y el
+        símbolo de la cinta. Al leer un símbolo cambia de estado y avanza; cuando no quedan símbolos, para. Aunque la
+        cinta sea infinita, la cadena que guía el comportamiento no lo es: puede ser tan larga como se quiera, pero
+        siempre <strong>finita</strong>.</p>
+      <p>La salida está limitada a dos valores: <strong>aceptado</strong> y <strong>no aceptado</strong>, que indican
+        si la cadena recibida es o no válida.</p>
+    </section>
+
+    <section class="block">
+      <h3>2. Definición de AFD</h3>
+      <p>Formalmente, un Autómata Finito Determinista es una tupla</p>
+      <div class="formula">
+        <p class="formula-main">AFD = (Σ, Q, f, q₀, F) &nbsp;&nbsp;|&nbsp;&nbsp; equivalente: A = (Q, Σ, δ, q₀, F)</p>
+      </div>
+      <ul class="defs-inline">
+        <li><strong>Σ</strong> — el alfabeto de entrada.</li>
+        <li><strong>Q</strong> — conjunto finito y no vacío de estados del autómata.</li>
+        <li><strong>f</strong> — función de transición, <code>f : Q × Σ → Q</code>. Indica a qué estado pasa dado un
+          estado y un símbolo.</li>
+        <li><strong>q₀ ∈ Q</strong> — estado inicial.</li>
+        <li><strong>F ⊂ Q</strong> — conjunto de estados finales de aceptación (<code>F ≠ ∅</code>). Puede tener uno,
+          varios o ninguno.</li>
+      </ul>
+      <p>La condición de ser <strong>determinístico</strong> se debe a que hay un <em>único</em> estado inicial y a que
+        las transiciones están descritas por una <strong>función total</strong>: para cada par (estado, símbolo) hay
+        <em>exactamente un</em> estado siguiente.</p>
+
+      <div class="callout accent">
+        <p class="callout-title">El significado de «estado»</p>
+        <p>Que el autómata esté en un estado quiere decir que el proceso de reconocimiento está en un punto específico
+          que cumple ciertas condiciones. Lo único que «recuerda» de lo leído es el estado en que se encuentra —no
+          tiene memoria adicional—. Al diseñar un AFD conviene preguntarse, para cada estado, <strong>qué sabe</strong>
+          el autómata sobre lo que leyó hasta ahora.</p>
+      </div>
+
+      <div class="example">
+        <p class="example-title">Ejemplo del teórico — semáforo peatonal</p>
+        <p>Inicialmente el semáforo está en rojo para el peatón y se supone que acaba de pasar a rojo. Se quiere
+          garantizar que permanezca en rojo al menos cuatro ticks de reloj: si el peatón oprime el botón y el semáforo
+          acaba de pasar a rojo, debe esperar cuatro ticks para pasar a amarillo (y luego a verde); si ya pasaron dos
+          ticks, espera dos; si pasaron diez, cambia inmediatamente. Oprimir el botón más de una vez no afecta el
+          comportamiento. El semáforo permanece en verde por cuatro ticks de reloj.</p>
+        <p class="note">Es el caso típico de <em>sistema de control</em>: no interesa qué cadena se acepta, sino la
+          secuencia de estados por la que pasa el sistema.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>3. Representación</h3>
+      <p>Un autómata puede describirse dando la lista de estados, el alfabeto, el estado inicial, los estados finales y
+        la función de transición. Esa función se describe con notación usual, con una <strong>matriz</strong> (una fila
+        por estado, una columna por símbolo: si <code>δ(s, σ) = s′</code> entonces <code>M[s, σ] = s′</code>) o
+        gráficamente con un <strong>grafo generalizado</strong>:</p>
+      <div class="grid four">
+        <div class="mini-card"><h5>Vértices</h5><p>Los estados son vértices.</p></div>
+        <div class="mini-card"><h5>Flecha</h5><p>El estado inicial se marca con una flecha.</p></div>
+        <div class="mini-card"><h5>Doble borde</h5><p>Los estados finales tienen doble borde.</p></div>
+        <div class="mini-card"><h5>Arcos</h5><p>Si <code>δ(q, σ) = p</code> hay un arco etiquetado <code>σ</code> de
+          <code>q</code> a <code>p</code>.</p></div>
+      </div>
+      <p>Si varios símbolos llevan al mismo estado se escribe un solo arco con los símbolos separados por comas
+        (<code>0,1</code>). En la <strong>tabla de transición</strong> el estado inicial se marca con
+        <code>→</code> y los de aceptación con <code>*</code>.</p>
+
+      <div class="example">
+        <p class="example-title">Ejemplo resuelto del TP3</p>
+        <p><code>Σ = {a, b}</code>, <code>Q = {p, q, r}</code>, <code>q₀ = p</code>, <code>F = {q}</code>, con</p>
+<pre><code>f(p, a) = q    f(q, b) = r
+f(p, b) = r    f(r, a) = r
+f(q, a) = q    f(r, b) = r</code></pre>
+        <div class="two-col">
+          <div class="table-wrap">
+            <table class="data mono">
+              <caption>Tabla de transición</caption>
+              <thead><tr><th scope="col"></th><th scope="col">a</th><th scope="col">b</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">→ p</th><td>q</td><td>r</td></tr>
+                <tr><th scope="row">* q</th><td>q</td><td>r</td></tr>
+                <tr><th scope="row">r</th><td>r</td><td>r</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 330 190" role="img" aria-label="Diagrama de transición del AFD con estados p, q y r">
+              <defs>
+                <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" class="arrowhead"/>
+                </marker>
+              </defs>
+              <line class="init" x1="18" y1="70" x2="58" y2="70"/>
+              <g class="edge mk">
+                <path d="M88,62 C120,40 150,40 168,58"/>
+                <path d="M168,78 C150,96 120,96 88,80"/>
+                <path d="M90,80 C130,120 170,120 205,86"/>
+                <path d="M205,70 C170,40 130,40 92,60"/>
+                <path d="M250,50 C275,30 285,30 292,55"/>
+                <path d="M292,80 C285,105 275,105 250,88"/>
+              </g>
+              <g class="node"><circle cx="72" cy="70" r="20"/><text x="72" y="75">p</text></g>
+              <g class="node fin"><circle cx="188" cy="70" r="20"/><circle cx="188" cy="70" r="15"/><text x="188" y="75">q</text></g>
+              <g class="node"><circle cx="290" cy="70" r="20"/><text x="290" y="75">r</text></g>
+              <text class="label" x="120" y="38">a</text>
+              <text class="label" x="120" y="112">b</text>
+              <text class="label" x="228" y="42">b</text>
+              <text class="label" x="228" y="104">a</text>
+              <text class="label" x="300" y="34">a,b</text>
+            </svg>
+          </div>
+        </div>
+        <p>Sólo se aceptan cadenas formadas únicamente por <code>a</code>: cualquier <code>b</code> lleva al estado
+          <code>r</code>, que es un <strong>estado muerto</strong>.</p>
+      </div>
+
+      <h4>Estado muerto y autómatas incompletos</h4>
+      <p>Un estado está <strong>muerto</strong> si no es final y no parte de él ninguna transición hacia otro estado.
+        Si durante el análisis se llega a un estado muerto, como ya no es posible salir, la cadena no será aceptada.</p>
+      <p>A menudo hay autómatas para los que <em>no están definidas todas las transiciones</em>. Esas situaciones se
+        consideran de <strong>error</strong>: si una cadena lleva al autómata a una situación no definida, la cadena no
+        ha sido reconocida. Para <strong>completar</strong> un autómata (no es imprescindible) basta con añadir un
+        estado muerto que reciba todas las transiciones que faltan.</p>
+      <p class="note">En esta materia los AFD se piden <strong>completos</strong>: la tabla incluye el estado trampa
+        cuando hace falta y el diagrama también lo dibuja.</p>
+
+      <h4>Autómata conexo</h4>
+      <p>Un autómata es <strong>conexo</strong> si todos sus estados son accesibles desde el estado inicial. Si no lo
+        es, se llama <strong>parte conexa</strong> al conjunto de estados accesibles desde el estado inicial.</p>
+    </section>
+
+    <section class="block">
+      <h3>4. Los AFD como reconocedores de lenguajes</h3>
+      <p>La función de transición se definió sobre un único símbolo. Se la amplía para que actúe sobre cadenas:
+        <code>f : Q × Σ* → Q</code>, redefiniéndola de forma recursiva:</p>
+      <div class="formula">
+        <p class="formula-main">f(q, λ) = q &nbsp;&nbsp;∀q ∈ Q<br>
+          f(q, ax) = f( f(q, a), x ) &nbsp;&nbsp;∀a ∈ Σ, x ∈ Σ*, q ∈ Q</p>
+      </div>
+      <p>El lenguaje que acepta un AFD es el conjunto de palabras sobre <code>Σ</code> que hacen que el autómata
+        llegue a un estado final de aceptación:</p>
+      <div class="formula">
+        <p class="formula-main">L = { x ∈ Σ* / f(q₀, x) ∈ F }</p>
+        <p class="formula-note">Con la notación de la guía: <code>L(A) = { w ∈ Σ* ∣ δ̂(q₀, w) ∈ F }</code>, donde
+          <code>δ̂</code> (delta sombrero) es la función extendida.</p>
+      </div>
+      <details class="solution more"><summary>Definición inductiva de δ̂</summary>
+        <ul class="bullets">
+          <li><strong>Base:</strong> <code>δ̂(q, ε) = q</code>. Sin leer nada, el autómata no se mueve.</li>
+          <li><strong>Paso:</strong> <code>δ̂(q, wa) = δ( δ̂(q, w), a )</code>, con <code>w ∈ Σ*</code> y
+            <code>a ∈ Σ</code>. Primero se lee <code>w</code> y después el último símbolo <code>a</code>.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="block">
+      <h3>5. Notación y conceptos de la guía</h3>
+      <div class="table-wrap">
+        <table class="data">
+          <caption>Símbolos usados en la guía práctica</caption>
+          <thead><tr><th scope="col">Símbolo</th><th scope="col">Se lee</th><th scope="col">Significa</th></tr></thead>
+          <tbody>
+            <tr><td>Σ</td><td>sigma mayúscula</td><td>un alfabeto</td></tr>
+            <tr><td>Σᵏ</td><td>sigma a la k</td><td>las cadenas de longitud k sobre Σ</td></tr>
+            <tr><td>Σ*</td><td>sigma estrella</td><td>todas las cadenas sobre Σ</td></tr>
+            <tr><td>Σ⁺</td><td>sigma más</td><td>las cadenas no vacías sobre Σ</td></tr>
+            <tr><td>ε</td><td>épsilon</td><td>la cadena vacía</td></tr>
+            <tr><td>|w|</td><td>longitud de w</td><td>las posiciones que ocupa w</td></tr>
+            <tr><td>∅</td><td>conjunto vacío</td><td>el lenguaje que no tiene ninguna cadena</td></tr>
+            <tr><td>Q, F</td><td>cu, efe</td><td>los estados y los de aceptación</td></tr>
+            <tr><td>q₀</td><td>cu sub cero</td><td>el estado inicial</td></tr>
+            <tr><td>δ / δ̂</td><td>delta / delta sombrero</td><td>la función de transición / la extendida</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <p class="callout-title">Dos aclaraciones</p>
+        <p><code>Σ</code> es sigma mayúscula: no hay que confundirla con <code>∑</code>, el signo de sumatoria.
+          Y <code>∅</code> no es una letra griega: es un cero tachado, distinto de la letra fi (<code>ϕ</code>).</p>
+      </div>
+
+      <h4>Alfabeto, cadena, longitud</h4>
+      <p>Un <strong>alfabeto</strong> es un conjunto finito y no vacío de símbolos; por convención se representa con
+        <code>Σ</code>. Ejemplos: <code>Σ = {0,1}</code> (binario); <code>Σ = {a, b, … z}</code>;
+        <code>Σ</code> = caracteres ASCII (128 símbolos); <code>Σ</code> = caracteres ASCII imprimibles (95: del 32 al
+        126). La diferencia entre los dos últimos son los caracteres de control: de los 128 códigos ASCII, 33 no
+        representan un signo visible sino una acción (salto de línea, tabulador, retorno de carro, DEL).</p>
+      <p>Una <strong>cadena</strong> (o palabra) es una secuencia finita de símbolos de un alfabeto; por convención se
+        nombran <code>w, x, y, z</code>. La <strong>cadena vacía</strong> <code>ε</code> no contiene ningún símbolo y
+        su longitud es 0; es una cadena válida dentro de cualquier alfabeto. La <strong>longitud</strong> es la
+        cantidad de <em>posiciones</em> ocupadas: <code>|01101| = 5</code>, aunque sólo haya dos tipos de símbolos.
+        <code>|ε| = 0</code>.</p>
+      <p>La <strong>potencia</strong> <code>Σᵏ</code> es el conjunto de todas las cadenas de longitud <code>k</code>
+        formadas con símbolos de <code>Σ</code>. Siempre <code>Σ⁰ = {ε}</code>. Si <code>Σ = {0,1}</code>:
+        <code>Σ¹ = {0,1}</code>, <code>Σ² = {00,01,10,11}</code>,
+        <code>Σ³ = {000,001,010,011,100,101,110,111}</code>.</p>
+      <p>La <strong>clausura de Kleene</strong> <code>Σ*</code> es el conjunto de todas las cadenas de cualquier
+        longitud: <code>Σ* = Σ⁰ ∪ Σ¹ ∪ Σ² ∪ Σ³ ∪ …</code>. Si se excluye la cadena vacía se usa
+        <code>Σ⁺ = Σ¹ ∪ Σ² ∪ Σ³ ∪ …</code>, y entonces <code>Σ* = Σ⁺ ∪ {ε}</code>.</p>
+      <p>La <strong>concatenación</strong> <code>xy</code> coloca una copia de <code>x</code> seguida de una de
+        <code>y</code>: si <code>x = a₁a₂…aᵢ</code> e <code>y = b₁b₂…bⱼ</code>, entonces
+        <code>xy = a₁a₂…aᵢb₁b₂…bⱼ</code>, de longitud <code>i + j</code>. Ejemplo: <code>x = 01101</code>,
+        <code>y = 110</code> → <code>xy = 01101110</code>. La cadena vacía es el neutro:
+        <code>εw = wε = w</code>.</p>
+      <p>Un <strong>lenguaje</strong> es un conjunto de cadenas tomadas de <code>Σ*</code>: si <code>L ⊆ Σ*</code>,
+        <code>L</code> es un lenguaje sobre <code>Σ</code>. No hace falta que contenga cadenas con todos los símbolos
+        de <code>Σ</code>. Ejemplos notables: <code>{ε, 01, 0011, 000111, …}</code> (n ceros seguidos de n unos);
+        las cadenas con igual número de ceros que de unos; los números binarios primos; <code>Σ*</code>;
+        <code>∅</code>; <code>{ε}</code>. Ojo: <code>∅ ≠ {ε}</code> — el primero no contiene ninguna cadena y el
+        segundo contiene exactamente una, la vacía. La única condición esencial es que el alfabeto sea
+        <strong>finito</strong>.</p>
+    </section>
+
+    <section class="block">
+      <h3>6. Un AFD completo, paso a paso</h3>
+      <div class="example">
+        <p class="example-title">Las cadenas binarias que comienzan con 1</p>
+        <p><code>A = ({q₀, q₁, q₂}, {0,1}, δ, q₀, {q₁})</code>:</p>
+        <div class="two-col">
+          <div class="table-wrap">
+            <table class="data mono">
+              <caption>Tabla de transición</caption>
+              <thead><tr><th scope="col">δ</th><th scope="col">0</th><th scope="col">1</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">→ q₀</th><td>q₂</td><td>q₁</td></tr>
+                <tr><th scope="row">* q₁</th><td>q₁</td><td>q₁</td></tr>
+                <tr><th scope="row">q₂</th><td>q₂</td><td>q₂</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 340 200" role="img" aria-label="AFD que reconoce las cadenas binarias que comienzan con 1">
+              <defs>
+                <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" class="arrowhead"/>
+                </marker>
+              </defs>
+              <line class="init" x1="14" y1="60" x2="52" y2="60"/>
+              <g class="edge mk">
+                <path d="M92,50 C130,22 165,34 182,52"/>
+                <path d="M182,70 C165,90 120,100 90,80"/>
+                <path d="M74,92 C80,130 120,150 158,152"/>
+                <path d="M222,44 C250,20 280,30 286,52"/>
+                <path d="M286,74 C280,100 250,110 226,96"/>
+                <path d="M170,168 C120,180 70,150 62,116"/>
+              </g>
+              <g class="node"><circle cx="68" cy="70" r="20"/><text x="68" y="75">q₀</text></g>
+              <g class="node fin"><circle cx="204" cy="62" r="20"/><circle cx="204" cy="62" r="15"/><text x="204" y="67">q₁</text></g>
+              <g class="node"><circle cx="204" cy="150" r="20"/><text x="204" y="155">q₂</text></g>
+              <text class="label" x="128" y="30">1</text>
+              <text class="label" x="120" y="106">0</text>
+              <text class="label" x="258" y="26">0,1</text>
+              <text class="label" x="258" y="112">0,1</text>
+              <text class="label" x="96" y="176">0,1</text>
+            </svg>
+          </div>
+        </div>
+        <p><strong>Qué sabe cada estado:</strong> <code>q₀</code>: todavía no leí nada; <code>q₁</code>: la cadena
+          empezó con 1; <code>q₂</code>: la cadena empezó con 0. <code>q₂</code> es el <strong>estado trampa</strong>:
+          una vez que la cadena empezó con 0 ya no hay forma de aceptarla.</p>
+        <p><strong>Verificación:</strong> para <code>w = 101</code>: <code>q₀ →¹ q₁ →⁰ q₁ →¹ q₁</code>, y como
+          <code>q₁ ∈ F</code> se acepta. Para <code>w = 011</code>: <code>q₀ →⁰ q₂ →¹ q₂ →¹ q₂</code>, y como
+          <code>q₂ ∉ F</code> se rechaza. La cadena vacía también se rechaza, porque
+          <code>δ̂(q₀, ε) = q₀ ∉ F</code>.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>7. AFND: autómatas finitos no deterministas</h3>
+      <p>En los deterministas sabemos exactamente cuál es la transición ante cada situación. En los no deterministas
+        puede haber <strong>varias opciones</strong> e incluso <strong>λ-transiciones</strong>, que se realizan sin
+        considerar el símbolo de la cadena de entrada. Se definen como:</p>
+      <div class="formula">
+        <p class="formula-main">AFND = (Σ, Q, f, q₀, F, T) &nbsp;&nbsp;con&nbsp;&nbsp; f : Q × Σ → 2<sup>Q</sup></p>
+      </div>
+      <ul class="defs-inline">
+        <li><strong>Σ, Q, q₀, F</strong> — igual que en el AFD.</li>
+        <li><strong>2<sup>Q</sup></strong> — el conjunto formado por los subconjuntos de <code>Q</code>, incluyendo
+          <code>∅</code>. Por eso <code>f</code> devuelve un <em>conjunto</em> de estados, no uno solo.</li>
+        <li><strong>T</strong> — relación binaria sobre <code>Q</code> que indica las λ-transiciones: si
+          <code>p T q</code>, hay una λ-transición de <code>p</code> a <code>q</code>.</li>
+      </ul>
+      <p>Los autómatas no determinísticos <strong>suelen ser más sencillos</strong> que los determinísticos. Ejemplo
+        del teórico: un autómata que reconoce las cadenas que contienen la subcadena <code>aba</code> (con
+        <code>Q = {1,2}</code>, <code>Σ = {a,b}</code>, <code>I = {1}</code>, <code>F = {2}</code>):</p>
+<pre><code>f = { ((1,a),1), ((1,b),1), ((1,aba),2), ((2,a),2), ((2,b),2) }</code></pre>
+      <p>La transición etiquetada <code>aba</code> consume tres símbolos de una vez: algo que un AFD no puede hacer sin
+        desdoblarse en estados intermedios.</p>
+      <div class="callout">
+        <p class="callout-title">Contiene vs. termina con</p>
+        <p>Un detalle fino del teórico: un AFND que reconoce las cadenas que <em>terminan</em> con <code>aba</code>
+          podría llegar al estado final leyendo <code>abab</code> con el arco <code>aba</code>, pero la cadena
+          <strong>no se acepta</strong>, porque al llegar al estado final todavía no terminó de leerse toda la
+          cadena. Para <em>comienza con</em> y <em>termina con</em>, estos autómatas no necesitan sumideros: la cadena
+          simplemente no terminaría de leerse.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>8. Lo que un AFD <em>no</em> puede hacer</h3>
+      <p>Un AFD no tiene más memoria que su estado actual, y la cantidad de estados es fija: no crece con la longitud
+        de la entrada. Por eso <strong>ningún AFD reconoce</strong> <code>L = {0ⁿ1ⁿ ∣ n ≥ 0}</code>.</p>
+      <p><strong>Demostración (principio del palomar).</strong> Supongamos que un AFD con <code>k</code> estados reconoce
+        <code>L</code>. Miremos en qué estado queda después de leer <code>ε, 0, 00, …, 0ᵏ</code>: son
+        <code>k + 1</code> cadenas y sólo hay <code>k</code> estados, así que dos de ellas, <code>0ⁱ</code> y
+        <code>0ʲ</code> con <code>i ≠ j</code>, dejan al autómata en el mismo estado. A partir de ahí no puede
+        distinguirlas: si después lee <code>1ⁱ</code>, termina en el mismo estado en los dos casos. Entonces acepta
+        <code>0ⁱ1ⁱ</code> si y sólo si acepta <code>0ʲ1ⁱ</code>. Pero la primera pertenece a <code>L</code> y la
+        segunda no: contradicción.</p>
+      <p>Para reconocer este lenguaje hace falta una memoria que pueda crecer con la entrada, como la cinta de una
+        máquina de Turing. <strong>Ese es el puente entre las unidades 3 y 4.</strong></p>
+      <details class="solution more"><summary>El «para pensar» de la guía</summary>
+        <p>Para las cadenas con igual cantidad de ceros que de unos, conviene usar las mismas cadenas
+          <code>0ⁱ</code> y <code>0ʲ</code>: si el autómata no las distingue, tampoco distingue
+          <code>0ⁱ1ⁱ</code> de <code>0ʲ1ⁱ</code>. La primera tiene igual cantidad de ceros que de unos; la segunda no.
+          Misma contradicción, mismo argumento.</p>
+      </details>
+    </section>
+
+    <section class="block">
+      <h3>9. Dónde se usan</h3>
+      <dl class="definition-list">
+        <dt>Analizadores léxicos</dt>
+        <dd>El primer paso de un compilador o intérprete es partir el texto en <em>tokens</em>: nombres de variables,
+          números, operadores, palabras reservadas. Cada clase de token se reconoce con un AFD. En Python un
+          identificador debe empezar con letra o guion bajo y seguir con letras, dígitos o guiones bajos:
+          <code>contador</code>, <code>_total</code> y <code>x2</code> son válidos; <code>2x</code> y
+          <code>mi-variable</code> no. Se agrupan los símbolos en tres clases —<em>letra</em> (letra o <code>_</code>),
+          <em>dígito</em> y <em>otro</em>— y queda el mismo esquema que el ejemplo de «comienza con 1», con el
+          no-identificador como estado trampa.</dd>
+        <dt>Validación de formatos</dt>
+        <dd>Cuando un formulario web verifica un dato, en general usa una expresión regular, que internamente se
+          convierte en un autómata finito. Ejemplo local: las patentes Mercosur como <code>AB123CD</code> son dos
+          letras, tres dígitos y dos letras, y se reconocen con una cadena de ocho estados (uno por posición leída más
+          el inicial), donde cualquier símbolo fuera de lugar lleva a la trampa.</dd>
+        <dt>Búsqueda de texto</dt>
+        <dd>La función «Buscar» de un editor o un navegador tiene que encontrar una palabra en un texto largo leyéndolo
+          una sola vez. Se construye un AFD que reconozca «las cadenas que contienen la palabra buscada»: el
+          Diagrama 2 del enunciado 5 es exactamente eso para la palabra <code>101</code>.</dd>
+        <dt>Sistemas de control</dt>
+        <dd>Molinete de acceso, máquina expendedora, semáforo, ascensor. Un molinete está bloqueado o desbloqueado:
+          pasar una tarjeta válida lo desbloquea y empujarlo lo vuelve a bloquear. No interesa si una cadena se acepta,
+          sino la secuencia de estados; el modelo es el mismo.</dd>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h3>10. Los cinco enunciados del práctico, resueltos</h3>
+      <p>Para los enunciados 1 a 4 hay que especificar <strong>Σ</strong>, <strong>Q</strong>, estado inicial,
+        <strong>F</strong>, diagrama y tabla, y explicar en una oración qué «sabe» el autómata en cada estado.</p>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 1 — cadenas binarias que terminan en 01</p>
+        <p>Aceptar <code>01, 001, 101, 1101, 00101</code>. Rechazar <code>ε, 0, 1, 10, 11, 100, 110</code>.</p>
+        <details class="solution"><summary>Ver solución completa</summary>
+          <p><code>Σ = {0,1}</code>, <code>Q = {q₀, q₁, q₂}</code>, inicial <code>q₀</code>,
+            <code>F = {q₂}</code>. Es <strong>completo</strong>: no hace falta trampa.</p>
+          <div class="table-wrap">
+            <table class="data mono">
+              <thead><tr><th scope="col">δ</th><th scope="col">0</th><th scope="col">1</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">→ q₀</th><td>q₁</td><td>q₀</td></tr>
+                <tr><th scope="row">q₁</th><td>q₁</td><td>q₂</td></tr>
+                <tr><th scope="row">* q₂</th><td>q₁</td><td>q₀</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 360 190" role="img" aria-label="AFD que reconoce cadenas binarias que terminan en 01">
+              <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+              <line class="init" x1="14" y1="60" x2="52" y2="60"/>
+              <g class="edge mk">
+                <path d="M72,40 C90,10 130,10 148,40"/>
+                <path d="M92,66 L168,66"/>
+                <path d="M190,46 C210,14 250,16 258,48"/>
+                <path d="M252,72 C230,104 190,104 170,74"/>
+                <path d="M278,60 C310,60 330,110 300,140"/>
+                <path d="M260,150 C210,160 150,120 120,80"/>
+              </g>
+              <g class="node"><circle cx="72" cy="60" r="20"/><text x="72" y="65">q₀</text></g>
+              <g class="node"><circle cx="190" cy="60" r="20"/><text x="190" y="65">q₁</text></g>
+              <g class="node fin"><circle cx="280" cy="60" r="20"/><circle cx="280" cy="60" r="15"/><text x="280" y="65">q₂</text></g>
+              <text class="label" x="104" y="20">0</text>
+              <text class="label" x="124" y="58">1</text>
+              <text class="label" x="232" y="22">0</text>
+              <text class="label" x="206" y="112">1</text>
+              <text class="label" x="316" y="100">0</text>
+              <text class="label" x="190" y="172">1</text>
+            </svg>
+          </div>
+          <p><strong>Qué sabe cada estado:</strong> <code>q₀</code>: lo último leído no es <code>0</code> (o la cadena
+            está vacía); <code>q₁</code>: la cadena termina en <code>0</code>; <code>q₂</code>: la cadena termina en
+            <code>01</code>, es decir, se acepta si la entrada termina acá.</p>
+          <p><strong>Verificación:</strong> <code>01: q₀→q₁→q₂ ✓</code>; <code>001: q₀→q₁→q₁→q₂ ✓</code>;
+            <code>101: q₀→q₀→q₁→q₂ ✓</code>; <code>1101 ✓</code>; <code>00101: q₀→q₁→q₁→q₂→q₁→q₂ ✓</code>.
+            Rechazos: <code>ε</code> queda en <code>q₀</code>; <code>0</code> en <code>q₁</code>;
+            <code>1</code> en <code>q₀</code>; <code>10</code> en <code>q₁</code>; <code>11</code> en
+            <code>q₀</code>; <code>100</code> en <code>q₁</code>; <code>110</code> en <code>q₁</code>. Todos
+            correctos.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 2 — cantidad par de ceros e impar de unos</p>
+        <p>Aceptar <code>1, 010, 100, 111, 00111</code>. Rechazar <code>ε, 01, 10, 11, 011, 0011</code>.</p>
+        <details class="solution"><summary>Ver solución completa</summary>
+          <p>Cuatro estados, uno por cada combinación de paridad: <code>q₀</code> = (ceros pares, unos pares),
+            <code>q₁</code> = (pares, impares), <code>q₂</code> = (impares, pares), <code>q₃</code> = (impares,
+            impares). Inicial <code>q₀</code> (0 ceros y 0 unos son pares), <code>F = {q₁}</code>.</p>
+          <div class="table-wrap">
+            <table class="data mono">
+              <thead><tr><th scope="col">δ</th><th scope="col">0</th><th scope="col">1</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">→ q₀</th><td>q₂</td><td>q₁</td></tr>
+                <tr><th scope="row">* q₁</th><td>q₃</td><td>q₀</td></tr>
+                <tr><th scope="row">q₂</th><td>q₀</td><td>q₃</td></tr>
+                <tr><th scope="row">q₃</th><td>q₁</td><td>q₂</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>Qué sabe cada estado:</strong> la paridad de ceros y de unos leídos hasta el momento. Leer
+            <code>0</code> invierte la paridad de los ceros; leer <code>1</code>, la de los unos.</p>
+          <p><strong>Verificación:</strong> <code>1: q₀→q₁ ✓</code>; <code>010: q₀→q₂→q₃→q₁ ✓</code>;
+            <code>100: q₀→q₁→q₃→q₁ ✓</code>; <code>111: q₀→q₁→q₀→q₁ ✓</code>;
+            <code>00111: q₀→q₂→q₀→q₁→q₀→q₁ ✓</code>. Rechazos: <code>ε→q₀</code>;
+            <code>01: q₀→q₂→q₃</code>; <code>10: q₀→q₁→q₃</code>; <code>11: q₀→q₁→q₀</code>;
+            <code>011: q₀→q₂→q₃→q₂</code>; <code>0011: q₀→q₂→q₀→q₁→q₀</code>. Todos correctos.</p>
+          <p class="note">Fijate que este AFD es <strong>completo y sin trampa</strong>: toda cadena termina en algún
+            estado y el rechazo depende sólo de la paridad.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 3 — sin <code>aa</code> y termina en <code>b</code></p>
+        <p>Aceptar <code>b, bb, ab, bab, abab, babb</code>. Rechazar <code>ε, a, ba, aa, aab, baab</code>.</p>
+        <details class="solution"><summary>Ver solución completa</summary>
+          <p><code>Σ = {a,b}</code>, <code>Q = {q₀, q₁, q₂, q_t}</code>, inicial <code>q₀</code>,
+            <code>F = {q₂}</code>. <code>q_t</code> es la trampa (apareció <code>aa</code>).</p>
+          <div class="table-wrap">
+            <table class="data mono">
+              <thead><tr><th scope="col">δ</th><th scope="col">a</th><th scope="col">b</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">→ q₀</th><td>q₁</td><td>q₂</td></tr>
+                <tr><th scope="row">q₁</th><td>q_t</td><td>q₂</td></tr>
+                <tr><th scope="row">* q₂</th><td>q₁</td><td>q₂</td></tr>
+                <tr><th scope="row">q_t</th><td>q_t</td><td>q_t</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 400 210" role="img" aria-label="AFD sin aa y terminado en b">
+              <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+              <line class="init" x1="12" y1="60" x2="48" y2="60"/>
+              <g class="edge mk">
+                <path d="M88,52 C120,26 170,26 200,50"/>
+                <path d="M200,70 C170,94 120,94 90,74"/>
+                <path d="M226,52 C260,26 300,30 306,54"/>
+                <path d="M306,76 C298,104 258,104 230,76"/>
+                <path d="M100,80 C120,140 160,160 200,150"/>
+                <path d="M330,96 C350,140 340,180 300,192"/>
+                <path d="M270,190 C180,196 140,130 118,84"/>
+              </g>
+              <g class="node"><circle cx="68" cy="60" r="20"/><text x="68" y="65">q₀</text></g>
+              <g class="node"><circle cx="212" cy="60" r="20"/><text x="212" y="65">q₁</text></g>
+              <g class="node fin"><circle cx="318" cy="60" r="20"/><circle cx="318" cy="60" r="15"/><text x="318" y="65">q₂</text></g>
+              <g class="node dead"><circle cx="240" cy="176" r="20"/><text x="232" y="181">q_t</text></g>
+              <text class="label" x="140" y="26">a</text>
+              <text class="label" x="126" y="102">b</text>
+              <text class="label" x="270" y="26">b</text>
+              <text class="label" x="248" y="112">a</text>
+              <text class="label" x="140" y="146">a</text>
+              <text class="label" x="352" y="140">a,b</text>
+            </svg>
+          </div>
+          <p><strong>Qué sabe cada estado:</strong> <code>q₀</code>: no leí nada todavía; <code>q₁</code>: lo último
+            fue <code>a</code> (no puedo recibir otra <code>a</code>); <code>q₂</code>: lo último fue
+            <code>b</code>, la cadena es aceptable si termina acá; <code>q_t</code>: apareció <code>aa</code>, ya no
+            hay vuelta atrás.</p>
+          <p><strong>Verificación:</strong> <code>b: q₀→q₂ ✓</code>; <code>bb ✓</code>; <code>ab ✓</code>;
+            <code>bab: q₀→q₂→q₁→q₂ ✓</code>; <code>abab ✓</code>; <code>babb ✓</code>. Rechazos:
+            <code>ε→q₀</code>; <code>a→q₁</code>; <code>ba→q₁</code>; <code>aa→q_t</code>;
+            <code>aab→q_t</code>; <code>baab: q₀→q₂→q₁→q_t ✓</code> (rechazada).</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 4 — sin <code>bb</code> y comienza con <code>a</code></p>
+        <p>Aceptar <code>a, ab, aba, abab, ababab, aababa</code>. Rechazar <code>ε, b, ba, abb, abba, aabb, bab</code>.</p>
+        <details class="solution"><summary>Ver solución completa</summary>
+          <p>Misma estructura que el 3, pero espejada: la condición sobre el extremo es <em>al principio</em> y la
+            subcadena prohibida es <code>bb</code>. Ahora <strong>dos</strong> estados de aceptación.</p>
+          <div class="table-wrap">
+            <table class="data mono">
+              <thead><tr><th scope="col">δ</th><th scope="col">a</th><th scope="col">b</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">→ q₀</th><td>q₁</td><td>q_t</td></tr>
+                <tr><th scope="row">* q₁</th><td>q₁</td><td>q₂</td></tr>
+                <tr><th scope="row">* q₂</th><td>q₁</td><td>q_t</td></tr>
+                <tr><th scope="row">q_t</th><td>q_t</td><td>q_t</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>Qué sabe cada estado:</strong> <code>q₀</code>: no leí nada; <code>q₁</code>: empezó con
+            <code>a</code> y lo último no fue <code>b</code>; <code>q₂</code>: empezó con <code>a</code> y lo último
+            fue <code>b</code> (no puedo recibir otra <code>b</code>); <code>q_t</code>: empezó con <code>b</code> o
+            apareció <code>bb</code>.</p>
+          <p><strong>Por qué hay dos estados de aceptación:</strong> porque el último símbolo puede ser
+            <code>a</code> o <code>b</code> y en los dos casos la cadena sigue siendo válida (lo único prohibido es una
+            segunda <code>b</code> consecutiva). En el enunciado 3 el último símbolo debía ser forzosamente
+            <code>b</code>, así que alcanzaba con un estado.</p>
+          <p><strong>Verificación:</strong> <code>a→q₁ ✓</code>; <code>ab→q₂ ✓</code>; <code>aba→q₁ ✓</code>;
+            <code>abab→q₂ ✓</code>; <code>ababab→q₂ ✓</code>;
+            <code>aababa: q₀→q₁→q₁→q₂→q₁→q₂→q₁ ✓</code>. Rechazos: <code>ε→q₀</code>; <code>b→q_t</code>;
+            <code>ba→q_t</code>; <code>abb: q₁→q₂→q_t</code>; <code>abba→q_t</code>;
+            <code>aabb→q_t</code>; <code>bab→q_t</code>.</p>
+          <p class="note"><strong>Comparación pedida:</strong> en el 3 se llega a la trampa desde <code>q₁</code> (dos
+            <code>a</code> seguidas) y desde ningún otro; en el 4, desde <code>q₀</code> (empezar con <code>b</code>),
+            desde <code>q₂</code> (dos <code>b</code>) y desde la propia trampa.</p>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <p class="exercise-title">Enunciado 5 — leer autómatas dados</p>
+        <p>Para cada diagrama: alfabeto, estados, inicial, finales, tabla, cinco cadenas válidas y cinco no válidas, y
+          una descripción del lenguaje en palabras.</p>
+
+        <h5>Diagrama 1</h5>
+        <p>Dos estados, <code>q₀</code> y <code>q₁</code>, con un lazo etiquetado <code>0</code> en cada uno y arcos
+          <code>1</code> de <code>q₀</code> a <code>q₁</code> y de <code>q₁</code> a <code>q₀</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p><code>Σ = {0,1}</code>, <code>Q = {q₀, q₁}</code>, inicial <code>q₀</code>, <code>F = {q₁}</code>.</p>
+          <table class="data mono small">
+            <thead><tr><th scope="col">δ</th><th scope="col">0</th><th scope="col">1</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">→ q₀</th><td>q₀</td><td>q₁</td></tr>
+              <tr><th scope="row">* q₁</th><td>q₁</td><td>q₀</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Lenguaje:</strong> las cadenas binarias que tienen una <strong>cantidad impar de unos</strong> (los
+            ceros no cambian el estado).</p>
+          <p><strong>Válidas:</strong> <code>1</code>, <code>10</code>, <code>001</code>, <code>111</code>,
+            <code>10000</code>. <strong>No válidas:</strong> <code>ε</code>, <code>0</code>, <code>11</code>,
+            <code>100</code>, <code>1111</code>.</p>
+          <p class="note">El diagrama del PDF es una imagen: la flecha de estado inicial y el doble círculo no se
+            pudieron extraer como texto, así que se toma <code>q₀</code> como inicial y <code>q₁</code> como final,
+            que es la lectura habitual de este autómata.</p>
+        </details>
+
+        <h5>Diagrama 2</h5>
+        <p>Cuatro estados <code>q₀ … q₃</code>, con <code>q₃</code> con lazo <code>0,1</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>La guía lo dice explícitamente: «el Diagrama 2 del Enunciado 5 es exactamente eso, para la palabra
+            <code>101</code>», es decir, el autómata que reconoce <strong>las cadenas que contienen la subcadena
+            101</strong>.</p>
+          <p><code>Σ = {0,1}</code>, <code>Q = {q₀,q₁,q₂,q₃}</code>, inicial <code>q₀</code>,
+            <code>F = {q₃}</code>.</p>
+          <div class="table-wrap">
+            <table class="data mono">
+              <thead><tr><th scope="col">δ</th><th scope="col">0</th><th scope="col">1</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">→ q₀</th><td>q₀</td><td>q₁</td></tr>
+                <tr><th scope="row">q₁</th><td>q₂</td><td>q₁</td></tr>
+                <tr><th scope="row">q₂</th><td>q₀</td><td>q₃</td></tr>
+                <tr><th scope="row">* q₃</th><td>q₃</td><td>q₃</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 520 170" role="img" aria-label="AFD que reconoce las cadenas que contienen 101">
+              <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+              <line class="init" x1="10" y1="70" x2="44" y2="70"/>
+              <g class="edge mk">
+                <path d="M62,42 C74,14 104,14 112,40"/>
+                <path d="M86,76 L144,76"/>
+                <path d="M164,42 C178,14 208,14 214,40"/>
+                <path d="M156,68 C130,96 110,96 92,80"/>
+                <path d="M232,76 L300,76"/>
+                <path d="M196,88 C190,124 160,140 140,110"/>
+                <path d="M330,52 C356,20 390,24 396,52"/>
+                <path d="M396,74 C390,104 356,106 330,80"/>
+              </g>
+              <g class="node"><circle cx="62" cy="62" r="20"/><text x="62" y="67">q₀</text></g>
+              <g class="node"><circle cx="184" cy="62" r="20"/><text x="184" y="67">q₁</text></g>
+              <g class="node"><circle cx="320" cy="62" r="20"/><text x="320" y="67">q₂</text></g>
+              <g class="node fin"><circle cx="418" cy="62" r="20"/><circle cx="418" cy="62" r="15"/><text x="418" y="67">q₃</text></g>
+              <text class="label" x="70" y="14">0</text>
+              <text class="label" x="106" y="70">1</text>
+              <text class="label" x="176" y="14">1</text>
+              <text class="label" x="110" y="112">0</text>
+              <text class="label" x="262" y="70">1</text>
+              <text class="label" x="150" y="150">0</text>
+              <text class="label" x="370" y="18">0,1</text>
+            </svg>
+          </div>
+          <p><strong>Qué sabe cada estado:</strong> <code>q₀</code>: no se leyó nada de <code>101</code>;
+            <code>q₁</code>: lo último leído fue <code>1</code> (posible comienzo); <code>q₂</code>: se leyó
+            <code>10</code>; <code>q₃</code>: ya apareció <code>101</code> y todo lo que siga lo mantiene.</p>
+          <p><strong>Válidas:</strong> <code>101</code>, <code>1010</code>, <code>0101</code>, <code>11101</code>,
+            <code>10111</code>. <strong>No válidas:</strong> <code>ε</code>, <code>1</code>, <code>10</code>,
+            <code>0110</code>, <code>100</code>.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Ejercicios extra</h3>
+      <div class="exercise">
+        <p class="exercise-title">1. Completar un autómata incompleto</p>
+        <p>Un AFD sobre <code>{a,b}</code> tiene <code>δ(q₀,a) = q₁</code> y no tiene definida
+          <code>δ(q₀,b)</code>. ¿Qué hay que hacer para completarlo?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>Agregar un estado muerto <code>q_t</code> y añadir <code>δ(q₀,b) = q_t</code>,
+            <code>δ(q_t,a) = q_t</code>, <code>δ(q_t,b) = q_t</code>. También hay que redirigir a <code>q_t</code>
+            cualquier otra transición que falte. No es imprescindible completarlo, pero sin completar hay que tratar
+            las situaciones no definidas como error explícito.</p>
+        </details>
+      </div>
+      <div class="exercise">
+        <p class="exercise-title">2. ¿Conexo?</p>
+        <p>Un autómata con estados <code>{p, q, r, s}</code> tiene transiciones sólo entre <code>p</code>,
+          <code>q</code> y <code>r</code>; desde <code>p</code> no se llega a <code>s</code>. ¿Es conexo?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>No. Su <strong>parte conexa</strong> es <code>{p, q, r}</code> junto con las transiciones entre ellos.
+            El estado <code>s</code> es inaccesible desde el inicial y podría eliminarse sin cambiar el lenguaje.</p>
+        </details>
+      </div>
+      <div class="exercise">
+        <p class="exercise-title">3. Aplicar δ̂</p>
+        <p>Con el AFD de la sección 6, calcular <code>δ̂(q₀, 101)</code> y <code>δ̂(q₀, 011)</code>.</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p><code>δ̂(q₀, 101) = δ( δ( δ(q₀,1), 0 ), 1 ) = δ(δ(q₁,0),1) = δ(q₁,1) = q₁ ∈ F</code>: se acepta.
+            <code>δ̂(q₀, 011) = δ( δ( δ(q₀,0), 1 ), 1 ) = δ(δ(q₂,1),1) = δ(q₂,1) = q₂ ∉ F</code>: se rechaza.</p>
+        </details>
+      </div>
+      <div class="exercise">
+        <p class="exercise-title">4. El argumento del palomar</p>
+        <p>¿Cuántas cadenas hay que considerar para probar que un AFD de 5 estados no reconoce
+          <code>{0ⁿ1ⁿ}</code>?</p>
+        <details class="solution"><summary>Ver solución</summary>
+          <p>Seis: <code>ε, 0, 00, 000, 0000, 00000</code>. Son <code>k+1</code> con <code>k = 5</code> estados, así
+            que por el palomar dos caen en el mismo estado y el autómata no puede distinguirlas.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Autoevaluación</h3>
+      <div class="quiz">
+        <div class="q" data-answer="1">
+          <p class="q-text">1. Un AFD es determinista porque…</p>
+          <label><input type="radio" name="a1" value="0"> tiene un solo estado final</label>
+          <label><input type="radio" name="a1" value="1"> hay un único inicial y la función de transición es total: un solo destino por par (estado, símbolo)</label>
+          <label><input type="radio" name="a1" value="2"> no tiene λ-transiciones ni estados trampa</label>
+          <p class="why">Puede tener varios estados finales; lo que lo hace determinista es el único inicial y la
+            función total.</p>
+        </div>
+        <div class="q" data-answer="0">
+          <p class="q-text">2. El lenguaje aceptado por un AFD es…</p>
+          <label><input type="radio" name="a2" value="0"> L = { x ∈ Σ* / f(q₀, x) ∈ F }</label>
+          <label><input type="radio" name="a2" value="1"> el conjunto de todos los estados</label>
+          <label><input type="radio" name="a2" value="2"> el conjunto de caminos del grafo</label>
+          <p class="why">Las cadenas que, leídas desde el inicial, terminan en un estado de aceptación.</p>
+        </div>
+        <div class="q" data-answer="2">
+          <p class="q-text">3. Un estado muerto (o trampa) es aquel que…</p>
+          <label><input type="radio" name="a3" value="0"> es siempre el estado inicial</label>
+          <label><input type="radio" name="a3" value="1"> tiene muchas transiciones salientes</label>
+          <label><input type="radio" name="a3" value="2"> no es final y no sale de él ninguna transición hacia otro estado</label>
+          <p class="why">Una vez que se llega, ya no se puede salir: la cadena no será aceptada.</p>
+        </div>
+        <div class="q" data-answer="1">
+          <p class="q-text">4. En un AFND, la función de transición va de <code>Q × Σ</code> a…</p>
+          <label><input type="radio" name="a4" value="0"> Q</label>
+          <label><input type="radio" name="a4" value="1"> 2<sup>Q</sup>, el conjunto de subconjuntos de Q</label>
+          <label><input type="radio" name="a4" value="2"> Σ*</label>
+          <p class="why">Por eso puede haber varias transiciones posibles para la misma situación.</p>
+        </div>
+        <div class="q" data-answer="0">
+          <p class="q-text">5. Ningún AFD reconoce <code>{0ⁿ1ⁿ}</code> porque…</p>
+          <label><input type="radio" name="a5" value="0"> su memoria es fija: por el palomar, dos <code>0ⁱ</code> y <code>0ʲ</code> caen en el mismo estado</label>
+          <label><input type="radio" name="a5" value="1"> el alfabeto tiene sólo dos símbolos</label>
+          <label><input type="radio" name="a5" value="2"> el lenguaje es finito</label>
+          <p class="why">Haría falta memoria que crezca con la entrada, como la cinta de una máquina de Turing.</p>
+        </div>
+        <button class="btn btn-primary" data-check>Corregir</button>
+        <p class="score" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="block sources">
+      <h3>Fuentes de la unidad</h3>
+      <ul class="source-list">
+        <li><strong>TP3 – Autómatas de estados finitos</strong> (teórico, definiciones y ejemplos).</li>
+        <li><strong>Autómatas finitos — Guía práctica (TP N.º 3)</strong> (notación, enunciados 1 a 5, usos).</li>
+        <li><strong>Autómatas.pdf</strong> (Hopcroft, Motwani y Ullman — capítulo 1, contexto general).</li>
+      </ul>
+      <details class="slides">
+        <summary>Láminas del teórico en Pitch</summary>
+        <div class="slides-list" data-deck="automatas"></div>
+      </details>
+    </section>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Guía de estudio de <strong>Programación II</strong> — Profesorado Universitario en Computación, Facultad de
+    Ciencias Exactas y Naturales, Universidad Nacional de La Pampa.</p>
+  <p class="tiny">Material de base: Dr. Oscar Testa – Esp. Leandro Castro (TP1 a TP4 y teóricos).
+    Sitio estático de una sola página, sin dependencias externas: apto para GitHub Pages.</p>
+  <p class="tiny"><a href="#" data-print>Imprimir o guardar como PDF</a></p>
+</footer>
+
+<button class="to-top" aria-label="Volver arriba" title="Volver arriba">↑</button>
+
+<script src="script.js"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
